@@ -24,8 +24,6 @@ class Profile(DefaultAuto):
     abilities = fields.List(fields.Nested(Ability))
     username = fields.String()
     name = fields.String()
-    lastname = fields.String()
-    document = fields.Integer()
     email = fields.String()
 
 class Photo(Schema):

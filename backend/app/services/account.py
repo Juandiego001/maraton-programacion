@@ -7,7 +7,7 @@ from app.utils import send_mail
 from bson import json_util, ObjectId
 
 def login(user_data: dict):
-    user = mongo.db.usuario.find_one(
+    user = mongo.db.users.find_one(
         {'username': user_data['username'], 
          'password': user_data['password']})
     if not user:
@@ -17,54 +17,28 @@ def login(user_data: dict):
 
 
 def get_user_by_id(userid: str):
-    return mongo.db.usuario.find_one(ObjectId(userid))
+    return mongo.db.users.find_one(ObjectId(userid))
 
 def get_user_by_email(email: str):
-    return mongo.db.usuario.find_one({'email': email})
+    return mongo.db.users.find_one({'email': email})
 
 def get_user_permissions(username: str, permission: str):
-    return mongo.db.perfil_usuario.aggregate(
+    return mongo.db.user_roles.aggregate(
         [{
             '$lookup': {
-                'from': 'permisos', 
-                'localField': 'profileid', 
-                'foreignField': 'profileid', 
-                'let': {
-                    f'{permission}': f'${permission}'
-                },
-                'pipeline': [
-                    {
-                        '$lookup': {
-                            'from': 'modulo', 
-                            'localField': 'moduleid', 
-                            'foreignField': '_id', 
-                            'as': 'modules'
-                        }
-                    }, {
-                        '$unwind': {
-                            'path': '$modules'
-                        }
-                    }, {
-                        '$match': {
-                            '$expr': {
-                                '$eq': [
-                                    f'${permission}', True
-                                ]
-                            }
-                        }
-                    }, {
-                        '$addFields': {
-                            'subject': '$modules.name',
-                            'action': f'{permission}',
-                        }
-                    }
-                ], 
+                'from': 'permissions', 
+                'localField': 'role_id', 
+                'foreignField': 'role_id',
                 'as': 'permissions'
             }
         }, {
+            '$unwind': {
+                'path': '$permissions'
+            }
+        }, {
             '$lookup': {
-                'from': 'usuario', 
-                'localField': 'userid', 
+                'from': 'users', 
+                'localField': 'user_id', 
                 'foreignField': '_id', 
                 'as': 'users'
             }
@@ -75,8 +49,9 @@ def get_user_permissions(username: str, permission: str):
         }, {
             '$match': {
                 '$expr': {
-                    '$eq': [
-                        '$users.username', username
+                    '$and': [
+                        { '$eq': [ '$users.username', username ] },
+                        { '$eq': [ '$permissions.action', permission ] }
                     ]
                 }
             }
@@ -105,14 +80,14 @@ def request_reset_password(email: str):
         t.start()
 
 def set_password(userid: str, new_password: str):
-    updated = mongo.db.usuario.find_one_and_update(
+    updated = mongo.db.users.find_one_and_update(
         {'_id': ObjectId(userid)},
         {'$set': {'password': new_password}})
     if not updated:
         raise HTTPException('User not found')
 
 def change_password(userid: str, data: dict):
-    updated = mongo.db.usuario.find_one_and_update(
+    updated = mongo.db.users.find_one_and_update(
         {'_id': ObjectId(userid), 'password': data['current_password']},
         {'$set': {'password': data['new_password']}})
     if not updated:

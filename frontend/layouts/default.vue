@@ -91,11 +91,8 @@ export default {
   },
 
   methods: {
-    async getMenu () {
+    getMenu () {
       try {
-        // eslint-disable-next-line no-console
-        await console.log('')
-        // await this.$axios.$get('/')
         const options = []
         for (const option of this.$clone(menu)) {
           option.e = this.session.epoch
@@ -103,7 +100,7 @@ export default {
             this.$ability.can('read', subitem.title))
           if (option.items.length) { options.push(option) }
         }
-        this.appMenu = options
+        this.appMenu = this.$clone(menu)
       } catch (err) {
         this.showSnackbar(err)
       }

@@ -25,7 +25,7 @@ def login(user_data):
         access_token = create_access_token(
             identity=str(data_profile['_id']), additional_claims=data_profile)
         response = jsonify({'message': 
-                            f'Bienvenido/a {user["name"]} {user["lastname"]}'})
+                            f'Bienvenido/a {user["name"]}'})
         set_access_cookies(response, access_token)
         return response
     except HTTPException as ex:
@@ -90,6 +90,10 @@ def get_profile():
             get_user_permissions(username, 'create').try_next()
         update_permissions = account.\
             get_user_permissions(username, 'update').try_next()
+        
+        print('read', read_permissions)
+        print('create', create_permissions)
+        print('update', update_permissions)
 
         user_detail['abilities'] = []
         if read_permissions:

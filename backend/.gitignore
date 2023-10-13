@@ -1,3 +1,4 @@
 pyenv
 activate
 .env
+__pycache__/

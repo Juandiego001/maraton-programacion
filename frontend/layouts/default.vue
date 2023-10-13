@@ -1,118 +1,135 @@
-<template>
-  <v-app dark>
-    <v-navigation-drawer
-      v-model="drawer"
-      :mini-variant="miniVariant"
-      :clipped="clipped"
-      fixed
-      app
-    >
-      <v-list>
-        <v-list-item
-          v-for="(item, i) in items"
-          :key="i"
-          :to="item.to"
-          router
-          exact
-        >
-          <v-list-item-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-    <v-app-bar
-      :clipped-left="clipped"
-      fixed
-      app
-    >
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-btn
-        icon
-        @click.stop="miniVariant = !miniVariant"
-      >
-        <v-icon>mdi-{{ `chevron-${miniVariant ? 'right' : 'left'}` }}</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="clipped = !clipped"
-      >
-        <v-icon>mdi-application</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="fixed = !fixed"
-      >
-        <v-icon>mdi-minus</v-icon>
-      </v-btn>
-      <v-toolbar-title>{{ title }}</v-toolbar-title>
-      <v-spacer />
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
-    </v-app-bar>
-    <v-main>
-      <v-container>
-        <Nuxt />
-      </v-container>
-    </v-main>
-    <v-navigation-drawer
-      v-model="rightDrawer"
-      :right="right"
-      temporary
-      fixed
-    >
-      <v-list>
-        <v-list-item @click.native="right = !right">
-          <v-list-item-action>
-            <v-icon light>
-              mdi-repeat
-            </v-icon>
-          </v-list-item-action>
-          <v-list-item-title>Switch drawer (click me)</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-    <v-footer
-      :absolute="!fixed"
-      app
-    >
-      <span>&copy; {{ new Date().getFullYear() }}</span>
-    </v-footer>
-  </v-app>
+<template lang="pug">
+v-app
+  v-navigation-drawer(v-model="drawer" fixed app dark class="primary")
+    v-row(class="py-4")
+      v-col(class="text-center pb-0" cols="12" md="12")
+        v-avatar
+          template(v-if="session.photo")
+            v-img(:src="photoUrl" alt="Avatar")
+          template(v-else)
+            v-icon(large) mdi-account-circle-outline
+      v-col(class="white--text text-center pb-0" cols="12" md="12")
+        p(class="mb-0") {{ session.name }} {{ session.lastname }}
+      v-col(class="text-center pb-0" cols="6")
+        v-btn(class="primary white--text" @click="showProfile") Perfil
+      v-col(class="text-center" cols="6")
+        v-btn(class="error white--text" @click="logout")
+          v-icon(class="white--text") mdi-logout
+          | Salir
+    v-list
+      v-list-item(link to="/")
+        v-list-item-icon
+          v-icon mdi-home
+        v-list-item-content
+          v-list-item-title Inicio
+      v-list-group(
+        v-for="(item, i) in appMenu"
+        :key="item.text + '' + i"
+        active-class="accent--text")
+        template(#activator)
+          v-list-item-icon
+            v-icon {{ item.icon }}
+          v-list-item-content
+            v-list-item-title {{ item.title }}
+        v-list-item(v-for="(option, j) in item.items"
+        :key="option.title + '' + j" :to="option.to")
+          v-list-item-icon
+            v-icon(class="white--text") {{ option.icon }}
+          v-list-item-title(class="white--text") {{ option.title }}
+  v-app-bar(app dark class="primary")
+    v-app-bar-nav-icon( @click.stop="drawer = !drawer")
+    v-toolbar-title
+      NuxtLink(class="white--text text-decoration-none" to="/")
+      | Maratón UAO
+    v-spacer
+    v-btn(icon)
+      v-icon mdi-magnify
+    v-btn(icon)
+      v-icon mdi-message-text-outline
+    v-btn(icon)
+      v-icon mdi-bell-outline
+    v-btn(icon @click="dialogEdit=true")
+      v-icon mdi-plus
+  v-main
+    Nuxt
+  v-snackbar(v-model="snackbar" multi-line
+  :color="$store.state.snackbar.type") {{ $store.state.snackbar.text }}
+    template(#action)
+      v-btn(icon @click="snackbar=false")
+        v-icon mdi-close
+  dialog-profile(v-model="dialogProfile" :profile="profile")
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
+import menu from './menu'
+import { photoUrl, accountProfileUrl, logoutUrl } from '~/mixins/routes'
+
 export default {
   name: 'DefaultLayout',
+  middleware: 'private',
   data () {
     return {
-      clipped: false,
+      dialogProfile: false,
+      profile: {},
       drawer: false,
-      fixed: false,
-      items: [
-        {
-          icon: 'mdi-apps',
-          title: 'Welcome',
-          to: '/'
-        },
-        {
-          icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
+      appMenu: []
+    }
+  },
+
+  computed: {
+    session () { return { ...this.$store.state.session } },
+    snackbar: {
+      get () { return this.$store.state.snackbar.snackbar },
+      ...mapMutations({ set: 'snackbar/snackbar' })
+    },
+    photoUrl () { return `${photoUrl}/${this.session.photoUrl}` }
+  },
+
+  beforeMount () {
+    this.getMenu()
+  },
+
+  methods: {
+    async getMenu () {
+      try {
+        // eslint-disable-next-line no-console
+        await console.log('')
+        // await this.$axios.$get('/')
+        const options = []
+        for (const option of this.$clone(menu)) {
+          option.e = this.session.epoch
+          option.items = option.items.filter(subitem =>
+            this.$ability.can('read', subitem.title))
+          if (option.items.length) { options.push(option) }
         }
-      ],
-      miniVariant: false,
-      right: true,
-      rightDrawer: false,
-      title: 'Vuetify.js'
+        this.appMenu = options
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async showProfile () {
+      try {
+        const data = await this.$axios.$get(accountProfileUrl)
+        this.profile = data
+        this.dialogProfile = true
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async logout () {
+      try {
+        const { message } = await this.$axios.$get(logoutUrl)
+        this.showSnackbar(message)
+        this.$router.push('/account/login')
+      } catch (err) {
+        this.showSnackbar(err)
+      }
     }
   }
 }
 </script>
+
+<style>
+html { overflow-y: auto !important }
+</style>

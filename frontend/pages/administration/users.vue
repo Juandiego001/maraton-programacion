@@ -13,7 +13,7 @@
           color="success"
           depressed
           icon
-          @click="getStudent(item)"
+          @click="getUser(item)"
         >
           <v-icon>
             mdi-pencil
@@ -36,11 +36,10 @@
       :fullscreen="$vuetify.breakpoint.smAndDown"
       scrollable
     >
-      <v-form ref="form" @submit.prevent="saveStudent">
+      <v-form ref="form" @submit.prevent="saveUser">
         <v-card flat :tile="$vuetify.breakpoint.smAndDown">
           <v-card-title class="primary white--text">
-            {{ form._id ? 'Formulario editar estudiante' :
-              'Formulario crear estudiante' }}
+            {{ form._id ? 'Editar usuario' : 'Crear usuario' }}
             <v-spacer />
             <v-btn
               class="white--text"
@@ -53,26 +52,12 @@
           <v-card-text class="my-3">
             <v-row dense>
               <v-col class="primary--text" cols="12" md="12">
-                Información del estudiante
+                Información del usuario
               </v-col>
               <v-col cols="12" md="6">
                 <text-field
                   v-model="form.name"
-                  label="Nombre"
-                  :rules="generalRules"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <text-field
-                  v-model="form.lastname"
-                  label="Apellido"
-                  :rules="generalRules"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <text-field
-                  v-model="form.document"
-                  label="Cédula"
+                  label="Nombre completo"
                   :rules="generalRules"
                 />
               </v-col>
@@ -95,17 +80,6 @@
                   v-model="form.password"
                   label="Contraseña"
                   :rules="passwordEmptyRules"
-                />
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-file-input
-                  v-model="photo"
-                  filled
-                  dense
-                  prepend-inner-icon="mdi-paperclip"
-                  :prepend-icon="null"
-                  label="Foto"
-                  hide-details="auto"
                 />
               </v-col>
             </v-row>
@@ -146,7 +120,7 @@
 <script>
 import passwordsEmptyRules from '../../mixins/form-rules/passwordsEmpty'
 import generalRules from '~/mixins/form-rules/general-rules'
-import { studentUrl } from '~/mixins/routes'
+import { userUrl } from '~/mixins/routes'
 
 export default {
   mixins: [generalRules, passwordsEmptyRules],
@@ -159,8 +133,6 @@ export default {
       form: {
         _id: '',
         name: '',
-        lastname: '',
-        document: '',
         username: '',
         email: '',
         password: ''
@@ -170,13 +142,13 @@ export default {
   },
 
   head () {
-    return { title: 'Students' }
+    return { title: 'Users' }
   },
 
   computed: {
     headers () {
       return [
-        { text: 'Estudiante', value: 'fullname' },
+        { text: 'Nombre completo', value: 'name' },
         { text: 'Usuario', value: 'username' },
         { text: 'Email', value: 'email' },
         { text: 'Estado', value: 'status' },
@@ -220,21 +192,21 @@ export default {
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(studentUrl)
+        const data = await this.$axios.$get(userUrl)
         this.items = data.items
       } catch (err) {
         this.showSnackbar(err)
       }
     },
-    async saveStudent () {
+    async saveUser () {
       try {
         if (!this.$refs.form.validate()) { return }
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
-            `${studentUrl}${this.form._id}`, this.form))
+            `${userUrl}${this.form._id}`, this.form))
         } else {
-          ({ message } = await this.$axios.$post(studentUrl, this.form))
+          ({ message } = await this.$axios.$post(userUrl, this.form))
         }
 
         this.getData()
@@ -244,9 +216,9 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getStudent (item) {
+    async getUser (item) {
       try {
-        this.form = (await this.$axios.$get(`${studentUrl}${item._id}`))
+        this.form = (await this.$axios.$get(`${userUrl}${item._id}`))
         this.dialogEdit = true
       } catch (err) {
         this.showSnackbar(err)

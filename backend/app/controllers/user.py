@@ -25,7 +25,7 @@ def create_user(data):
 @bp.output(UserOut)
 def get_user_detail(userid):
     try:
-        return user.get_admin_by_id(userid)
+        return UserOut().dump(user.get_user_by_id(userid))
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:
@@ -35,7 +35,7 @@ def get_user_detail(userid):
 @bp.output(Users)
 def get_users():
     try:
-        return Users().dump({'items': user.get_admins()})
+        return Users().dump({'items': user.get_users()})
     except Exception as ex:
         abort(500, str(ex))
 
@@ -46,7 +46,7 @@ def get_users():
 def update_user(userid, data):
     try:
         data['updated_by'] = get_jwt()['username']
-        user.update_admin(userid, data)
+        user.update_user(userid, data)
         return {'message': 'User updated successfully'}
     except HTTPException as ex:
         abort(400, ex.description)

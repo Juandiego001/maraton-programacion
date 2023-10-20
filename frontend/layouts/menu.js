@@ -10,8 +10,8 @@ export default [
       },
       {
         icon: 'mdi-wallet-membership',
-        title: 'Estudiantes',
-        to: '/administration/students'
+        title: 'Usuarios',
+        to: '/administration/users'
       },
       {
         icon: 'mdi-shield-account-variant-outline',

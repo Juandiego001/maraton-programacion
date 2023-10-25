@@ -24,9 +24,9 @@ v-row(class="fill-height my-0 mx-0 white")
 </template>
 
 <script>
-import generalRules from '../../mixins/form-rules/general-rules'
+import generalRules from '../../mixins/form-rules/generalRules'
 import passwordRules from '../../mixins/form-rules/passwords'
-import { loginUrl, accountProfileUrl } from '../../mixins/routes'
+import { loginUrl, accountProfileUrl } from '~/mixins/routes'
 
 export default {
   name: 'IndexPage',
@@ -50,6 +50,7 @@ export default {
       try {
         if (!this.$refs.form.validate()) { return }
         const epoch = Math.floor(Date.now() / 1000)
+        console.log('PASA POR AQUI')
         const { message } = await this.$axios.$post(loginUrl, this.form)
         const user = await this.$axios.$get(accountProfileUrl)
         this.$store.commit('session/updateSession', { epoch, ...user })

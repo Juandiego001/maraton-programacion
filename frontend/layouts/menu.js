@@ -4,55 +4,55 @@ export default [
     title: 'Administración',
     items: [
       {
-        icon: 'mdi-view-dashboard-outline',
+        icon: 'mdi-shield-account-variant-outline',
         title: 'Roles',
         to: '/administration/roles'
       },
       {
-        icon: 'mdi-wallet-membership',
+        icon: 'mdi-account',
         title: 'Usuarios',
         to: '/administration/users'
       },
       {
-        icon: 'mdi-shield-account-variant-outline',
-        title: 'Estructuras',
-        to: '/administration/structures'
-      },
-      {
-        icon: 'mdi-chart-timeline-variant',
+        icon: 'mdi-tag-multiple-outline',
         title: 'Temáticas',
         to: '/administration/topics'
       },
       {
-        icon: 'mdi-chart-box-outline',
+        icon: 'mdi-lan',
+        title: 'Estructuras',
+        to: '/administration/structures'
+      },
+      {
+        icon: 'mdi-bell-outline',
         title: 'Notificaciones',
         to: '/administration/notifications'
       }
     ]
   },
   {
-    icon: 'mdi-account',
+    icon: 'mdi-alpha-m-box-outline',
     title: 'Maratón',
     items: [
       {
-        icon: 'mdi-shield-crown-outline',
+        icon: 'mdi-medal-outline',
         title: 'Competencias',
-        to: '/users/contests'
+        to: '/marathon/contests'
       },
       {
-        icon: 'mdi-account-circle-outline',
+        icon: 'mdi-text-box-outline',
         title: 'Retos',
-        to: '/users/challenges'
+        to: '/marathon/challenges'
       },
       {
-        icon: 'mdi-school',
+        icon: 'mdi-code-tags',
         title: 'Soluciones',
-        to: '/users/solutions'
+        to: '/marathon/solutions'
       },
       {
-        icon: 'mdi-school',
+        icon: 'mdi-book',
         title: 'Materiales',
-        to: '/users/materials'
+        to: '/marathon/materials'
       }
     ]
   }

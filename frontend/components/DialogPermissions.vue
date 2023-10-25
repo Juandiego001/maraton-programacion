@@ -1,87 +1,41 @@
-<template>
-  <v-dialog
-    :value="dialog"
-    max-width="700px"
-    :fullscreen="$vuetify.breakpoint.smAndDown"
-    scrollable
-    @input="ev => $emit('input', ev)"
-  >
-    <v-card flat :tile="$vuetify.breakpoint.smAndDown">
-      <v-card-title class="primary--text">
-        Permisos
-        <v-spacer />
-        <v-btn fab small depressed @click="$emit('input', false)">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-        <v-card-text>
-          <v-data-table
-            :headers="headers"
-            dense
-            :items="items"
-            :items-per-page="15"
-            :server-items-length="total"
-            :options.sync="options"
-            :footer-props="{itemsPerPageOptions:[5,10,15,20]}"
-          >
-            <template #top>
-              <v-text-field
-                v-model="search"
-                placeholder="Buscar"
-                append-icon="mdi-magnify"
-                filled
-                dense
-                hide-details
-              />
-            </template>
-            <template #[`item.read`]="{item}">
-              <div class="d-flex justify-center">
-                <v-checkbox
-                  v-model="item.read"
-                  hide-details
-                  dense
-                  :disabled="isDisabled(item, 'read')"
-                  @change="ev => updtatePermissions(item)"
-                />
-              </div>
-            </template>
-            <template #[`item.create`]="{item}">
-              <div class="d-flex justify-center">
-                <v-checkbox
-                  v-model="item.create"
-                  hide-details
-                  dense
-                  :disabled="isDisabled(item, 'create')"
-                  @change="ev => updtatePermissions(item)"
-                />
-              </div>
-            </template>
-            <template #[`item.update`]="{item}">
-              <div class="d-flex justify-center">
-                <v-checkbox
-                  v-model="item.update"
-                  hide-details
-                  dense
-                  :disabled="isDisabled(item, 'update')"
-                  @change="ev => updtatePermissions(item)"
-                />
-              </div>
-            </template>
-            <template #[`item.delete`]="{item}">
-              <div class="d-flex justify-center">
-                <v-checkbox
-                  v-model="item.delete"
-                  hide-details
-                  dense
-                  :disabled="isDisabled(item, 'delete')"
-                  @change="ev => updtatePermissions(item)"
-                />
-              </div>
-            </template>
-          </v-data-table>
-        </v-card-text>
-      </v-card-title>
-    </v-card>
-  </v-dialog>
+<template lang="pug">
+  v-dialog(:value="dialog" max-width="700px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable
+  @input="ev = $emit('input', ev)")
+
+    v-card( flat :tile="$vuetify.breakpoint.smAndDown")
+      v-card-title( class="primary--text") Permisos
+        v-spacer
+        v-btn( fab small depressed @click="$emit('input', false)")
+          v-icon mdi-close
+        v-card-text
+          v-data-table(:headers="headers" dense :items="items"
+          :items-per-page="15" :server-items-length="total"
+          :options.sync="options"
+          :footer-props="{itemsPerPageOptions:[5,10,15,20]}")
+            template( #top)
+              v-text-field(v-model="search" placeholder="Buscar"
+              append-icon="mdi-magnify" filled dense hide-details)
+            template( #item.read="{ item }")
+              div( class="d-flex justify-center")
+                v-checkbox(v-model="item.read" hide-details dense
+                :disabled="isDisabled(item, 'read')"
+                @change="ev = updtatePermissions(item)")
+            template(#item.create="{item}")
+              div( class="d-flex justify-center")
+                v-checkbox(v-model="item.create" hide-details dense
+                :disabled="isDisabled(item, 'create')"
+                @change="ev = updtatePermissions(item)")
+            template(#item.update="{item}")
+              div( class="d-flex justify-center")
+                v-checkbox(v-model="item.update" hide-details dense
+                :disabled="isDisabled(item, 'update')"
+                @change="ev = updtatePermissions(item)")
+            template(#item.delete="{item}")
+              div(class="d-flex justify-center")
+                v-checkbox(v-model="item.delete" hide-details dense
+                :disabled="isDisabled(item, 'delete')"
+                @change="ev = updtatePermissions(item)")
 </template>
 <script>
 import { permissionUrl } from '~/mixins/routes'

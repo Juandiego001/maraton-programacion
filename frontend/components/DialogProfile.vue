@@ -57,7 +57,7 @@ v-dialog(:value="dialog" max-width="600px" scrollable
 
 <script>
 import { changePasswordUrl } from '~/mixins/routes'
-import generalRules from '~/mixins/form-rules/general-rules'
+import generalRules from '~/mixins/form-rules/generalRules'
 import passwordRules from '~/mixins/form-rules/passwords'
 
 export default {

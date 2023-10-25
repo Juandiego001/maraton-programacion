@@ -38,7 +38,7 @@ v-container(fluid)
 
 <script>
 import { roleUrl } from '~/mixins/routes'
-import generalRules from '~/mixins/form-rules/general-rules'
+import generalRules from '~/mixins/form-rules/generalRules'
 
 export default {
   name: 'PermissionsPage',

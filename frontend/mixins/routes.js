@@ -7,10 +7,13 @@ export const accountProfileUrl = '/api/account/profile'
 export const changePasswordUrl = '/api/account/change-password'
 
 // User
-export const userUrl = '/api/user/'
+export const userUrl = '/api/user'
 
 // Permissions
-export const permissionUrl = '/api/permission/'
+export const permissionUrl = '/api/permission'
 
 // Roles
-export const roleUrl = '/api/role/'
+export const roleUrl = '/api/role'
+
+// Solutions
+export const solutionUrl = '/api/solution'

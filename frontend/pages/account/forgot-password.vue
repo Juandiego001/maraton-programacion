@@ -20,7 +20,7 @@ v-row(class="fill-height my-0 mx-0 white")
 </template>
 
 <script>
-import generalRules from '../../mixins/form-rules/general-rules'
+import generalRules from '../../mixins/form-rules/generalRules'
 import { resetPasswordUrl } from '../../mixins/routes'
 
 export default {

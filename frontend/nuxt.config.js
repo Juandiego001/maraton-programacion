@@ -61,16 +61,16 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseUrl: '/',
-    proxy: false
+    baseUrl: 'http://localhost:5000/',
+    proxy: true
   },
 
-  // proxy: {
-  //   '/api/': {
-  //     target: 'http://localhost:5000/api/'
-  //   },
-  //   changeOrigin: true
-  // },
+  proxy: {
+    '/api/': {
+      target: 'http://localhost:5000/'
+    },
+    changeOrigin: true
+  },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {

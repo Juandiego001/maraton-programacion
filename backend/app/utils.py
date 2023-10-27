@@ -9,6 +9,9 @@ from uuid import uuid4
 def generate_id():
     return base64.urlsafe_b64encode(uuid4().bytes).decode('utf-8').strip('=')
 
+def successfull_message():
+    return {'message': 'Guardado extiosamente'}
+
 def server_send_mail(smtp_config: dict, server,
                      subject: str, to: str, msg: str):
     sender_email = smtp_config['MAIL_SENDER']

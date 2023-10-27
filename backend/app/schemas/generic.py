@@ -23,6 +23,7 @@ class DefaultAuto(Schema):
     _id = ObjectId(dump_only=True)
     updated_by = fields.String(dump_only=True, validate=[Length(0, 100)])
     updated_at = fields.String(dump_only=True)
+    created_at = fields.String(dump_only=True)
 
 class Message(Schema):
     message = fields.String()

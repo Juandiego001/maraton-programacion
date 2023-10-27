@@ -14,6 +14,8 @@ class ContestOut(DefaultAuto):
     name = fields.String()
     file_url = fields.String()
     status = fields.String()
+    full_contest = fields.Function(
+        lambda contest: f'{contest["platform"]} {contest["made_at"]}')
 
 class ContestChallengeOut(Schema):
     _id = ObjectId()

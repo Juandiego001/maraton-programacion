@@ -13,6 +13,8 @@ class ChallengeIn(DefaultAuto):
 class ChallengeOut(DefaultAuto):
     title = fields.String()
     source = fields.String()
+    contestid = ObjectId()
+    topicsid = fields.List(ObjectId(), required=False)
     contest = fields.Nested(ContestChallengeOut)
     topics = fields.List(fields.Nested(TopicOut))
     status = fields.Boolean()

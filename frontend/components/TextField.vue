@@ -31,7 +31,7 @@ export default {
     },
     rules: {
       type: Array,
-      default: new Array(0)
+      default: () => []
     }
   },
 

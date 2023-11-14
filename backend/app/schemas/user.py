@@ -1,21 +1,23 @@
 from apiflask import Schema, fields
 from app.schemas.generic import DefaultAuto, ObjectId
-from app.schemas.role import RoleUserOut
+
 
 class UserIn(DefaultAuto):
     name = fields.String()
     username = fields.String()
     email = fields.String()
-    password = fields.String(required=False, load_default='')
-    roles = fields.List(fields.String(required=False), required=False, load_default=[])
-    status = fields.String(required=False)
+    roles = fields.List(ObjectId())
+    password = fields.String(required=False, load_default='', allow_none=True)
+    status = fields.String(required=False, load_default='PENDING')
+
 
 class UserOut(DefaultAuto):
     name = fields.String()
     username = fields.String()
     email = fields.String()
-    roles = fields.List(fields.Nested(RoleUserOut))
+    roles = fields.List(fields.String())
     status = fields.String()
+
 
 class Users(Schema):
     items = fields.List(fields.Nested(UserOut))

@@ -9,7 +9,9 @@ from app.services import account
 from app.schemas.generic import Message
 from bson.errors import InvalidId
 
+
 bp = APIBlueprint('account', __name__)
+
 
 @bp.post('/login')
 @bp.input(Login)
@@ -33,6 +35,7 @@ def login(user_data):
     except Exception as ex:
         abort(500, str(ex))
 
+
 @bp.get('/logout')
 def logout():
     try:
@@ -41,6 +44,7 @@ def logout():
         return response
     except Exception as ex:
         abort(500, str(ex))
+
 
 @bp.post('/reset-password')
 @bp.input(Email)
@@ -54,6 +58,7 @@ def reset_password(data):
         return {'message': 'Sent email successfully'}
     except Exception as ex:
         abort(500, str(ex))
+
 
 @bp.patch('/reset-password/<string:secret>')
 @bp.input(NewPassword)
@@ -70,6 +75,7 @@ def set_password(secret, data):
     except Exception as ex:
         abort(500, str(ex))
 
+
 @bp.get('/profile')
 @bp.output(Profile)
 @jwt_required(optional=True)
@@ -85,23 +91,23 @@ def get_profile():
         username = user_detail['username']
 
         read_permissions = account.\
-            get_user_permissions(username, 'read').try_next()
+            get_user_permissions(username, 'read')
         create_permissions = account.\
-            get_user_permissions(username, 'create').try_next()
+            get_user_permissions(username, 'create')
         update_permissions = account.\
-            get_user_permissions(username, 'update').try_next()
-        
-        print('read', read_permissions)
-        print('create', create_permissions)
-        print('update', update_permissions)
+            get_user_permissions(username, 'update')
+        delete_permissions = account.\
+            get_user_permissions(username, 'delete')
 
         user_detail['abilities'] = []
         if read_permissions:
-            user_detail['abilities'] += read_permissions['permissions']
+            user_detail['abilities'] += read_permissions
         if create_permissions:
-            user_detail['abilities'] += create_permissions['permissions']
+            user_detail['abilities'] += create_permissions
         if update_permissions:
-            user_detail['abilities'] += update_permissions['permissions']
+            user_detail['abilities'] += update_permissions
+        if delete_permissions:
+            user_detail['abilities'] += delete_permissions
             
         user_profile = Profile().dump(user_detail)
         return user_profile
@@ -109,6 +115,7 @@ def get_profile():
         abort(404, ex.description)
     except Exception as ex:
         abort(500, str(ex))
+
 
 @bp.patch('/change-password')
 @bp.input(ChangePassword)
@@ -122,6 +129,7 @@ def change_password(data):
         abort(404, ex.description)
     except Exception as ex:
         abort(500, str(ex))
+
 
 @bp.get('/photo/<string:photo_url>')
 @bp.output(Photo)

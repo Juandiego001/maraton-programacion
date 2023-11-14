@@ -1,16 +1,43 @@
 import base64
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from http.client import HTTPException
 import smtplib
 import ssl
 from uuid import uuid4
+from flask import jsonify
+from flask_jwt_extended import create_access_token, get_jwt,\
+    set_access_cookies, unset_jwt_cookies
+from app import app, jwt
+from app.schemas.account import Profile
+
 
 def generate_id():
     return base64.urlsafe_b64encode(uuid4().bytes).decode('utf-8').strip('=')
 
-def successfull_message():
+
+def success_message():
     return {'message': 'Guardado extiosamente'}
+
+
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()['exp']
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=15))
+        if target_timestamp > exp_timestamp:
+            data_profile = Profile().dump(get_jwt())
+            access_token = create_access_token(
+                identity=str(data_profile['_id']),
+                additional_claims=data_profile)
+            set_access_cookies(response, access_token)
+        return response
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original response
+        return response
+
 
 def server_send_mail(smtp_config: dict, server,
                      subject: str, to: str, msg: str):
@@ -43,3 +70,11 @@ def send_mail(smtp_config: dict, subject: str, to: str, msg: str):
                 server_send_mail(smtp_config, server, subject, to, msg)
     except OSError:
         raise HTTPException('Invalid SMTP configuration')
+    
+
+@jwt.expired_token_loader
+def check_if_token_is_expired(jwt_header, jwt_payload: dict):
+    response = jsonify({'message': 'Sesión expirada.\
+                        Por favor iniciar sesión nuevamente'})
+    unset_jwt_cookies(response)
+    return response, 401

@@ -102,6 +102,7 @@ def get_challenge_by_id(challengeid: str):
                 'updated_at': 1, 
                 'updated_by': 1, 
                 'status': 1,
+                'difficulty': 1,
                 'contestid': '$contest._id',
                 'topicsid': '$topics_challenge.topics._id',
                 'contest': {
@@ -168,6 +169,7 @@ def get_challenges():
                 'updated_at': 1, 
                 'updated_by': 1, 
                 'status': 1,
+                'difficulty': 1,
                 'contestid': '$contest._id',
                 'topicsid': '$topics_challenge.topics._id',
                 'contest': {

@@ -1,5 +1,3 @@
-// import { AbilityBuilder, Ability } from '@casl/ability'
-
 export default async function ({ redirect, $axios, $ability, app, store }) {
   try {
     const epoch = Math.floor(Date.now() / 1000)

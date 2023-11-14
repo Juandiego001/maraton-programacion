@@ -6,12 +6,12 @@ v-container(fluid)
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
-      @click="getStructure(item)")
+      @click="getLanguage(item)")
         v-icon mdi-pencil-outline
 
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
-    v-form(ref="form" @submit.prevent="saveStructure")
+    v-form(ref="form" @submit.prevent="saveLanguage")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title(class="primary white--text")
           | {{ formTitle }}
@@ -22,9 +22,9 @@ v-container(fluid)
         v-card-text(class="my-3")
           v-row(dense)
             v-col(class="primary--text" cols="12" md="12")
-              | Información de la estructura de datos
+              | Información del lenguaje
             v-col(cols="12" md="12")
-              text-field(v-model="form.title" label="Título"
+              text-field(v-model="form.name" label="Nombre"
               :rules="generalRules")
             v-col(cols="12" md="12")
               v-textarea(v-model="form.description" label="Descripción"
@@ -48,7 +48,7 @@ v-container(fluid)
 
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
-import { structureUrl } from '../../mixins/routes'
+import { languageUrl } from '../../mixins/routes'
 
 export default {
   mixins: [generalRules],
@@ -61,20 +61,20 @@ export default {
       search: '',
       form: {
         _id: '',
-        title: '',
+        name: '',
         description: ''
       }
     }
   },
 
   head () {
-    return { title: 'Structures' }
+    return { title: 'Languages' }
   },
 
   computed: {
     headers () {
       return [
-        { text: 'Estructura de datos', align: 'center', width: 6, value: 'title' },
+        { text: 'Lenguaje', align: 'center', width: 6, value: 'name' },
         { text: 'Descripción', align: 'center', width: 12, value: 'description' },
         { text: 'Estado', align: 'center', width: 6, value: 'status' },
         { text: 'Opciones', align: 'center', width: 6, value: 'options' }
@@ -82,8 +82,8 @@ export default {
     },
     formTitle () {
       return this.form._id
-        ? 'Editar estructura de datos'
-        : 'Crear estructura de datos'
+        ? 'Editar lenguaje'
+        : 'Crear lenguaje'
     }
   },
 
@@ -100,28 +100,28 @@ export default {
   },
 
   beforeMount () {
-    this.moduleSlug = 'Estructuras'
+    this.moduleSlug = 'Lenguajes'
     this.canViewPage()
   },
 
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(structureUrl)
+        const data = await this.$axios.$get(languageUrl)
         this.items = data.items
       } catch (err) {
         this.showSnackbar(err)
       }
     },
-    async saveStructure () {
+    async saveLanguage () {
       try {
         if (!this.$refs.form.validate()) { return }
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
-              `${structureUrl}${this.form._id}`, this.form))
+              `${languageUrl}${this.form._id}`, this.form))
         } else {
-          ({ message } = await this.$axios.$post(structureUrl, this.form))
+          ({ message } = await this.$axios.$post(languageUrl, this.form))
         }
 
         this.getData()
@@ -131,9 +131,9 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getStructure (item) {
+    async getLanguage (item) {
       try {
-        this.form = (await this.$axios.$get(`${structureUrl}${item._id}`))
+        this.form = (await this.$axios.$get(`${languageUrl}${item._id}`))
         this.dialogEdit = true
       } catch (err) {
         this.showSnackbar(err)

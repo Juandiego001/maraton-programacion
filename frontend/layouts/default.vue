@@ -42,21 +42,23 @@ v-app
       NuxtLink(class="white--text text-decoration-none" to="/")
       | Maratón UAO
     v-spacer
-    v-btn(icon)
+    v-btn(v-if="canSearch" icon @click="dialogSearch=true")
       v-icon mdi-magnify
     v-btn(icon)
       v-icon mdi-message-text-outline
     v-btn(icon)
       v-icon mdi-bell-outline
-    v-btn(icon @click="dialogEdit=true")
+    v-btn(v-if="canCreate" icon @click="dialogEdit=true")
       v-icon mdi-plus
   v-main
     Nuxt
+
   v-snackbar(v-model="snackbar" multi-line
   :color="$store.state.snackbar.type") {{ $store.state.snackbar.text }}
     template(#action)
       v-btn(icon @click="snackbar=false")
         v-icon mdi-close
+
   dialog-profile(v-model="dialogProfile" :profile="profile")
 </template>
 

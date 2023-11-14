@@ -1,8 +1,6 @@
 export const state = () => ({
   username: '',
   name: '',
-  lastname: '',
-  document: '',
   photo: '',
   epoch: 0
 })

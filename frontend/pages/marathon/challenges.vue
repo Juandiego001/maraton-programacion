@@ -14,7 +14,7 @@ v-container(fluid)
     v-form(ref="form" @submit.prevent="saveTopic")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title(class="primary white--text")
-          | {{ form._id ? 'Editar reto' : 'Crear reto' }}
+          | {{ formTitle }}
           v-spacer
           v-btn(class="white--text" icon @click="dialogEdit=false")
             v-icon mdi-close
@@ -22,25 +22,29 @@ v-container(fluid)
         v-card-text(class="my-3")
           v-row(dense)
             v-col(class="primary--text" cols="12" md="12")
-              | Información de la reto
-            v-col(cols="12" md="12")
+              | Información del reto
+            v-col(cols="12" md="6")
               text-field(v-model="form.title" label="Título"
               :rules="generalRules")
             v-col(cols="12" md="6")
-              text-field(v-model="form.source" label="Archivos aceptados"
-              :rules="[]")
+              text-field(v-model="form.source" label="Archivos aceptados")
             v-col(cols="12" md="6")
               v-select(v-model="form.contestid" dense :items="contests"
               label="Competencia" filled :rules="generalRules"
               item-text="full_contest" item-value="_id" hide-details="auto")
+            v-col(cols="12" md="6")
+              v-select(v-model="form.difficulty" label="Dificultad" dense
+              :items="difficulties" filled item-text="text" item-value="value"
+              hide-details="auto")
             v-col(cols="12" md="12")
               v-select(v-model="form.topicsid" dense :items="topics"
               label="Temáticas" filled multiple chips :rules="[]"
               item-text="title" item-value="_id" hide-details="auto")
 
           v-row(v-if="form._id" dense)
-            v-col(cols="12")
-              v-checkbox(v-model="form.status" label="Activo")
+            v-col(v-if="form._id" cols="12")
+              v-checkbox(v-model="form.status" label="Activo"
+              hide-details="auto")
             v-col(class="text-caption" cols="12" md="6")
               | ID: {{ form._id }}
             v-col(class="text-caption text-md-right" cols="12" md="6")
@@ -53,7 +57,7 @@ v-container(fluid)
 </template>
 
 <script>
-import generalRules from '~/mixins/form-rules/generalRules'
+import generalRules from '~/mixins/form-rules/general-rules'
 import { topicUrl, contestUrl, challengeUrl } from '~/mixins/routes'
 
 export default {
@@ -86,6 +90,25 @@ export default {
         { text: 'Estado', align: 'center', width: 6, value: 'status' },
         { text: 'Opciones', align: 'center', width: 6, value: 'options' }
       ]
+    },
+    formTitle () {
+      return this.form._id ? 'Editar reto' : 'Crear reto'
+    },
+    difficulties () {
+      return [
+        {
+          text: 'Fácil',
+          value: 'EASY'
+        },
+        {
+          text: 'Intermedio',
+          value: 'INTERMEDIATE'
+        },
+        {
+          text: 'Difícil',
+          value: 'HARD'
+        }
+      ]
     }
   },
 
@@ -105,6 +128,11 @@ export default {
         this.$refs.form && this.$refs.form.resetValidation()
       }
     }
+  },
+
+  beforeMount () {
+    this.moduleSlug = 'Retos'
+    this.canViewPage()
   },
 
   methods: {

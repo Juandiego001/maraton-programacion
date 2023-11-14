@@ -4,7 +4,7 @@ from flask_jwt_extended import get_jwt, jwt_required
 from app.schemas.structure import StructureIn, StructureOut, Structures
 from app.schemas.generic import Message
 from app.services import structure
-from app.utils import successfull_message
+from app.utils import success_message
 
 bp = APIBlueprint('structure', __name__)
 
@@ -16,7 +16,7 @@ def create_structure(data):
     try:
         data['updated_by'] = get_jwt()['username']
         structure.create_structure(data)
-        return successfull_message()
+        return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:
@@ -48,7 +48,7 @@ def update_structure(structureid, data):
     try:
         data['updated_by'] = get_jwt()['username']
         structure.update_structure(structureid, data)
-        return successfull_message()
+        return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:

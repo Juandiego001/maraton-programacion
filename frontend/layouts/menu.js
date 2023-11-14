@@ -24,6 +24,11 @@ export default [
         to: '/administration/structures'
       },
       {
+        icon: 'mdi-codepen',
+        title: 'Lenguajes',
+        to: '/administration/languages'
+      },
+      {
         icon: 'mdi-bell-outline',
         title: 'Notificaciones',
         to: '/administration/notifications'

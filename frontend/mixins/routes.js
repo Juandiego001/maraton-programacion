@@ -10,19 +10,22 @@ export const changePasswordUrl = '/api/account/change-password'
 export const userUrl = '/api/user/'
 
 // Permissions
-export const permissionUrl = '/api/permission'
+export const permissionUrl = '/api/permission/'
 
 // Roles
 export const roleUrl = '/api/role/'
 
 // Solutions
-export const solutionUrl = '/api/solution'
+export const solutionUrl = '/api/solution/'
 
 // Topics
 export const topicUrl = '/api/topic/'
 
 // Structures
 export const structureUrl = '/api/structure/'
+
+// Languages
+export const languageUrl = '/api/language/'
 
 // Competencia
 export const contestUrl = '/api/contest/'

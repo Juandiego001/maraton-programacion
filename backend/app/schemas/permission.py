@@ -1,15 +1,27 @@
-from apiflask import Schema, fields
 from app.schemas.generic import DefaultAuto
+from apiflask import Schema, fields
+from app.schemas.generic import ObjectId
+
 
 class PermissionIn(DefaultAuto):
-    slug = fields.String()
-    action = fields.String()
-    status = fields.Boolean()
+    read = fields.Boolean()
+    update = fields.Boolean()
+    create = fields.Boolean()
+    delete = fields.Boolean()
+
+
+class PermissionInCreate(PermissionIn):
+    profileid = ObjectId()
+    moduleid = ObjectId()
+
 
 class PermissionOut(DefaultAuto):
-    slug = fields.String()
-    action = fields.String()
-    status = fields.Boolean()
+    read = fields.Boolean()
+    update = fields.Boolean()
+    create = fields.Boolean()
+    delete = fields.Boolean()
+    module = fields.String()
+
 
 class Permissions(Schema):
     items = fields.List(fields.Nested(PermissionOut))

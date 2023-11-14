@@ -40,15 +40,19 @@ v-container(fluid)
                 @change="saveDate")
 
             v-col(cols="12" md="6")
-              text-field(v-model="form.name" label="Nombre"
-              filled depressed :rules="[]")
+              text-field(v-model="form.name" label="Nombre")
             v-col(cols="12" md="6")
               v-file-input(v-model="file" label="Archivo"
               hide-details="auto")
-
+            v-col(cols="12" md="12")
+              text-field(v-model="form.link_url" label="Enlace")
+            v-col(cols="12" md="6")
+              v-checkbox(v-model="form.isTraining" label="Capacitación"
+              hide-details="auto")
+            v-col(v-if="form._id" cols="12" md="6")
+              v-checkbox(v-model="form.status" label="Activo"
+              hide-details="auto")
           v-row(v-if="form._id" dense)
-            v-col(cols="12")
-              v-checkbox(v-model="form.status" label="Activo")
             v-col(class="text-caption" cols="12" md="6")
               | ID: {{ form._id }}
             v-col(class="text-caption text-md-right" cols="12" md="6")
@@ -61,7 +65,7 @@ v-container(fluid)
 </template>
 
 <script>
-import generalRules from '../../mixins/form-rules/generalRules'
+import generalRules from '../../mixins/form-rules/general-rules'
 import { contestUrl } from '../../mixins/routes'
 
 export default {
@@ -79,7 +83,9 @@ export default {
         platform: '',
         made_at: '',
         name: '',
-        file_url: ''
+        file_url: '',
+        link_url: '',
+        isTraining: false
       },
       file: null
     }
@@ -113,6 +119,11 @@ export default {
     menu (val) {
       val && setTimeout(() => (this.activePicker = 'YEAR'))
     }
+  },
+
+  beforeMount () {
+    this.moduleSlug = 'Competencias'
+    this.canViewPage()
   },
 
   methods: {

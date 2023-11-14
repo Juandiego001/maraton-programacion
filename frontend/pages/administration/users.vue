@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
+  :options.sync="options" :search="search")
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
       @click="getUser(item)")
@@ -9,13 +9,15 @@ v-container(fluid)
       v-btn(v-if="item.status === 'PENDING'" class="mr-2" color="primary"
       icon @click="resendLink(item)")
         v-icon mdi-email-fast-outline
+    template(#item.status="{ item }")
+      | {{ showStatus(item.status)  }}
 
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
     v-form(ref="form" @submit.prevent="saveUser")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title(class="primary white--text")
-          | {{ form._id ? 'Editar usuario' : 'Crear usuario' }}
+          | {{ formTitle }}
           v-spacer
           v-btn(class="white--text" icon @click="dialogEdit=false")
             v-icon mdi-close
@@ -31,9 +33,13 @@ v-container(fluid)
               text-field(v-model="form.username" label="Usuario"
               :rules="generalRules")
             v-col(cols="12" md="12")
+              v-select(v-model="form.roles" label="Roles" :items="roles"
+              item-text="name" item-value="_id" filled chips small-chips
+              :rules="generalRules" multiple hide-details="auto")
+            v-col(cols="12" md="6")
               text-field(v-model="form.email" label="Correo"
               :rules="generalRules")
-            v-col(cols="12" md="12")
+            v-col(cols="12" md="6")
               text-field-password(v-model="form.password" label="Contraseña"
                 :rules="passwordEmptyRules")
 
@@ -51,12 +57,14 @@ v-container(fluid)
         v-card-actions
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
+
+  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
 </template>
 
 <script>
-import passwordsEmptyRules from '../../mixins/form-rules/passwordsEmpty'
-import generalRules from '../../mixins/form-rules/generalRules'
-import { userUrl } from '../../mixins/routes'
+import passwordsEmptyRules from '../../mixins/form-rules/passwords-empty'
+import generalRules from '../../mixins/form-rules/general-rules'
+import { userUrl, roleUrl } from '../../mixins/routes'
 
 export default {
   mixins: [generalRules, passwordsEmptyRules],
@@ -66,14 +74,17 @@ export default {
       options: {},
       total: -1,
       items: [],
+      roles: [],
+      photo: null,
+      search: '',
       form: {
         _id: '',
         name: '',
         username: '',
         email: '',
-        password: ''
-      },
-      photo: null
+        password: '',
+        roles: []
+      }
     }
   },
 
@@ -107,6 +118,9 @@ export default {
           value: 'INACTIVE'
         }
       ]
+    },
+    formTitle () {
+      return this.form._id ? 'Editar usuario' : 'Crear usuario'
     }
   },
 
@@ -117,12 +131,15 @@ export default {
         this.$refs.form.reset()
         this.form._id = ''
       } else {
+        this.getRoles()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     }
   },
 
   beforeMount () {
+    this.moduleSlug = 'Usuarios'
+    this.canViewPage()
   },
 
   methods: {
@@ -159,6 +176,24 @@ export default {
       } catch (err) {
         this.showSnackbar(err)
       }
+    },
+    async getRoles () {
+      try {
+        this.roles = (await this.$axios.$get(roleUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    showStatus (status) {
+      return status === 'ACTIVE'
+        ? 'Activo'
+        : status === 'PENDING'
+          ? 'Pendiente de activación'
+          : 'Inactivo'
+    },
+    doSearch (value) {
+      this.search = value
+      this.dialogSearch = false
     }
   }
 }

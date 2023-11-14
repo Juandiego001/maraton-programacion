@@ -12,7 +12,7 @@ class ObjectId(fields.Field):
 
     def _serialize(self, value, attr, obj):
         if value is None:
-            return missing
+            return None
         return str(value)
 
 class DefaultAuto(Schema):

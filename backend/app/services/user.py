@@ -3,8 +3,15 @@ from werkzeug.exceptions import HTTPException
 from app import mongo
 from bson import ObjectId
 
+
+def delete_old_user_roles(userid: str):
+    return mongo.db.user_roles.delete_many({'userid': ObjectId(userid)})
+
+
 def create_user_roles(params: list):
     return mongo.db.user_roles.insert_many(params)
+
+
 
 def create_user(params: dict):
     user = verify_if_user_exists([
@@ -16,19 +23,21 @@ def create_user(params: dict):
     params['status'] = 'PENDING'
     params['updated_at'] = datetime.now()
 
-    roles = []
-    if 'roles' in params:
-        roles = params.pop('roles')
-
-    user_id = mongo.db.users.insert_one(params).inserted_id
+    roles = roles = params.pop('roles') if 'roles' in params else []
+    userid = mongo.db.users.insert_one(params).inserted_id
     user_roles = []
-    for role_id in roles:
-        if not mongo.db.roles.find_one(ObjectId(role_id)):
+    for roleid in roles:
+        if not mongo.db.roles.find_one(ObjectId(roleid)):
             raise HTTPException('Hay roles asociados que no existen')
-        user_roles.append({'user_id': user_id, 'role_id': ObjectId(role_id)})
+        user_roles.append({'userid': userid, 'roleid': ObjectId(roleid)})
     
+    user_roles_created = False
     if len(user_roles):
-        create_user_roles(user_roles)
+        user_roles_created = create_user_roles(user_roles)
+    
+    if not user_roles_created:
+        raise HTTPException('Los roles del usuario no fueron creados')
+    return user_roles_created
 
 def get_user_by_id(userid: str):
     user = mongo.db.users.aggregate([
@@ -36,23 +45,22 @@ def get_user_by_id(userid: str):
             '$lookup': {
                 'from': 'user_roles', 
                 'localField': '_id', 
-                'foreignField': 'user_id', 
+                'foreignField': 'userid', 
                 'pipeline': [
                     {
                         '$lookup': {
                             'from': 'roles', 
-                            'localField': 'role_id', 
+                            'localField': 'roleid', 
                             'foreignField': '_id', 
-                            'as': 'roles'
+                            'as': 'role'
                         }
                     }, {
                         '$unwind': {
-                            'path': '$roles'
+                            'path': '$role'
                         }
                     }, {
                         '$project': {
-                            'name': '$roles.name', 
-                            '_id': '$roles._id'
+                            'role._id': 1
                         }
                     }
                 ], 
@@ -72,7 +80,7 @@ def get_user_by_id(userid: str):
                 'username': 1, 
                 'status': 1, 
                 'email': 1, 
-                'roles': '$user_roles'
+                'roles': '$user_roles.role._id'
             }
         }]).try_next()
     if not user:
@@ -85,12 +93,12 @@ def get_users():
             '$lookup': {
                 'from': 'user_roles', 
                 'localField': '_id', 
-                'foreignField': 'user_id', 
+                'foreignField': 'userid', 
                 'pipeline': [
                     {
                         '$lookup': {
                             'from': 'roles', 
-                            'localField': 'role_id', 
+                            'localField': 'roleid', 
                             'foreignField': '_id', 
                             'as': 'roles'
                         }
@@ -160,19 +168,20 @@ def get_users2():
             }
         }]))
 
+
 def verify_if_user_exists(params: list):
     return mongo.db.users.find_one({'$or': params})
 
+
 def update_user(userid, params):
-    userid = ObjectId(userid)
-    user = mongo.db.users.find_one({'_id': userid})
+    user = mongo.db.users.find_one({'_id': ObjectId(userid)})
     if not user:
         raise HTTPException('User was not found')
     
     verify_data = []
-    if 'username' in params:
+    if 'username' in params and user['username'] != params['username']:
         verify_data.append({'username': params['username']})
-    if 'email' in params:
+    if 'email' in params and user['email'] != params['email']:
         verify_data.append({'email': params['email']})
 
     if len(verify_data) and verify_if_user_exists(verify_data):
@@ -185,9 +194,17 @@ def update_user(userid, params):
     if 'password' in params and params['password'] == '':
         params.pop('password')
 
-    updated = mongo.db.users.update_one({'_id': userid}, {'$set': params})
+    rolesid = params.pop('roles') if 'roles' in params else []
+    if len(rolesid):
+        delete_old_user_roles(userid)
+        user_roles = [{'userid': ObjectId(userid),
+                'roleid': roleid
+            } for roleid in rolesid]        
+        if not mongo.db.user_roles.insert_many(user_roles):
+            raise HTTPException('Los roles de usuario no fueron creados')
 
+    updated = mongo.db.users.update_one({'_id': ObjectId(userid)},
+                                        {'$set': params})
     if not updated:
         raise HTTPException('User not found')
     return user
-

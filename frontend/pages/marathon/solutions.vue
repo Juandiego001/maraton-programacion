@@ -1,114 +1,100 @@
 <template lang="pug">
-  v-container(fluid)
-    v-data-table(:headers="headers" :items="items" :server-items-length="total"
-    :options.sync="options")
+v-container(fluid)
+  v-data-table(:headers="headers" :items="items" :server-items-length="total"
+  :options.sync="options")
+    template(#item.options="{ item }")
+      v-btn(class="mr-2" color="success" depressed icon
+      @click="getSolution(item)")
+        v-icon mdi-pencil-outline
+    template(#item.status="{ item }")
+      | {{ item.status ? 'Activo' : 'Inactivo' }}
 
-      template(#item.options="{ item }")
-        v-btn(class="mr-2" color="success" depressed icon
-        @click="getUser(item)")
-          v-icon mdi-pencil-outline
-        v-btn(v-if="item.status === 'PENDING'" class="mr-2" color="primary"
-        icon @click="resendLink(item)")
-          v-icon mdi-email-fast-outline
+  v-dialog(v-model="dialogEdit" max-width="600px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
+    v-form(ref="form" @submit.prevent="saveSolution")
+      v-card(flat :tile="$vuetify.breakpoint.smAndDown")
+        v-card-title.primary.white--text
+          | {{ formTitle }}
+          v-spacer
+          v-btn(class="white--text" icon @click="dialogEdit=false")
+            v-icon mdi-close
+        v-card-text(class="my-3")
+          v-row(dense)
+            v-col(class="primary--text" cols="12" md="12")
+              | Información de la solución
+            v-col(cols="12" md="6")
+              v-file-input(v-model="file" filled label="Subir archivo"
+              hide-details="auto" :rules="generalRules")
+            v-col(cols="12" md="6")
+              v-select(v-model="form.languageid" label="Lenguaje" filled
+              :items="languages" item-text="name" item-value="_id"
+              hide-details="auto" :rules="generalRules")
+            v-col(cols="12" md="12")
+              text-field(v-model="form.link" label="Enlace")
+            v-col(cols="12" md="6")
+              text-field(v-model="form.judgment_status"
+              label="Respuesta del juez")
+            v-col(cols="12" md="6")
+              text-field(v-model="form.error" label="Error")
+            v-col(cols="12" md="12")
+              v-textarea(v-model="form.description" label="Descripción"
+              filled rows="3" auto-grow hide-details="auto")
 
-    v-dialog(v-model="dialogEdit" max-width="600px"
-    :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
-      v-form(ref="form" @submit.prevent="saveUser")
-        v-card(flat :tile="$vuetify.breakpoint.smAndDown")
-          v-card-title(class="primary white--text")
-            | {{ form._id ? 'Editar usuario' : 'Crear usuario' }}
-            v-spacer
-            v-btn(class="white--text" icon @click="dialogEdit=false")
-              v-icon mdi-close
+          v-row(v-if="form._id" dense)
+            v-col(cols="12")
+              v-checkbox(v-model="form.status" label="Activo"
+              hide-details="auto")
+            v-col(class="text-caption" cols="12" md="6")
+              | ID: {{ form._id }}
+            v-col(class="text-caption text-md-right" cols="12" md="6")
+              | Modificado por: {{ form.updated_by }}
+              | {{ $moment(form.updated_at) }}
 
-          v-card-text(class="my-3")
-            v-row(dense)
-              v-col(class="primary--text" cols="12" md="12")
-                | Información del usuario
-              v-col(cols="12" md="6")
-                text-field(v-model="form.name" label="Nombre completo"
-                :rules="generalRules")
-              v-col(cols="12" md="6")
-                text-field(v-model="form.username" label="Usuario"
-                :rules="generalRules")
-              v-col(cols="12" md="12")
-                text-field(v-model="form.email" label="Correo"
-                :rules="generalRules")
-              v-col(cols="12" md="12")
-                text-field-password(v-model="form.password" label="Contraseña"
-                  :rules="passwordEmptyRules")
-
-            v-row(v-if="form._id" dense)
-              v-col(cols="12")
-                v-select(v-model="form.status" label="Estado" filled dense
-                hide-details="auto" :items="userStatus" item-value="value"
-                item-text="text")
-              v-col(class="text-caption" cols="12" md="6")
-                | ID: {{ form._id }}
-              v-col(class="text-caption text-md-right" cols="12" md="6")
-                | Modificado por: {{ form.updated_by }}
-                | {{ $moment(form.updated_at) }}
-
-          v-card-actions
-            v-spacer
-            v-btn(color="primary" depressed type="submit") Guardar
-
+        v-card-actions
+          v-spacer
+          v-btn(color="primary" depressed type="submit") Guardar
 </template>
 
 <script>
-import passwordsEmptyRules from '../../mixins/form-rules/passwordsEmpty'
-import generalRules from '../../mixins/form-rules/generalRules'
-import { userUrl } from '../../mixins/routes'
+import generalRules from '../../mixins/form-rules/general-rules'
+import { solutionUrl, languageUrl } from '../../mixins/routes'
 
 export default {
-  mixins: [generalRules, passwordsEmptyRules],
+  mixins: [generalRules],
 
   data () {
     return {
       options: {},
       total: -1,
       items: [],
+      languages: [],
+      file: null,
       form: {
         _id: '',
-        name: '',
-        username: '',
-        email: '',
-        password: ''
-      },
-      photo: null
+        languageid: '',
+        link: '',
+        description: '',
+        judgment_status: '',
+        error: ''
+      }
     }
   },
 
   head () {
-    return { title: 'Users' }
+    return { title: 'Solutions' }
   },
 
   computed: {
     headers () {
       return [
-        { text: 'Nombre completo', value: 'name' },
-        { text: 'Usuario', value: 'username' },
-        { text: 'Email', value: 'email' },
+        { text: 'Archivo', value: 'real_name' },
+        { text: 'Enlace', value: 'link' },
         { text: 'Estado', value: 'status' },
         { text: 'Opciones', value: 'options' }
       ]
     },
-    userStatus () {
-      return [
-        {
-          text: 'Activo',
-          value: 'ACTIVE'
-        },
-        {
-          text: 'Pendiente de activación',
-          value: 'PENDING',
-          disabled: true
-        },
-        {
-          text: 'Inactivo',
-          value: 'INACTIVE'
-        }
-      ]
+    formTitle () {
+      return this.form._id ? 'Editar solución' : 'Crear solución'
     }
   },
 
@@ -119,34 +105,49 @@ export default {
         this.$refs.form.reset()
         this.form._id = ''
       } else {
+        this.getLanguages()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     }
   },
 
   beforeMount () {
+    this.moduleSlug = 'Soluciones'
+    this.canViewPage()
   },
 
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(userUrl)
+        const data = await this.$axios.$get(solutionUrl)
         this.items = data.items
       } catch (err) {
         this.showSnackbar(err)
       }
     },
-    async saveUser () {
+    getFormData () {
+      const formData = new FormData()
+      for (const key of Object.keys(this.form)) {
+        formData.append(key, this.form[key])
+      }
+      if (this.file) {
+        formData.append('file', this.file)
+      }
+      return formData
+    },
+    async saveSolution () {
       try {
         if (!this.$refs.form.validate()) { return }
         let message
+        const formData = this.getFormData()
         if (this.form._id) {
+          // eslint-disable-next-line no-console
+          console.log('LLEGA A ACTUALIZAR');
           ({ message } = await this.$axios.$patch(
-            `${userUrl}${this.form._id}`, this.form))
+            `${solutionUrl}${this.form._id}`, formData))
         } else {
-          ({ message } = await this.$axios.$post(userUrl, this.form))
+          ({ message } = await this.$axios.$post(solutionUrl, formData))
         }
-
         this.getData()
         this.dialogEdit = false
         this.showSnackbar(message)
@@ -154,10 +155,17 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getUser (item) {
+    async getSolution (item) {
       try {
-        this.form = (await this.$axios.$get(`${userUrl}${item._id}`))
+        this.form = (await this.$axios.$get(`${solutionUrl}${item._id}`))
         this.dialogEdit = true
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getLanguages () {
+      try {
+        this.languages = (await this.$axios.$get(languageUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }

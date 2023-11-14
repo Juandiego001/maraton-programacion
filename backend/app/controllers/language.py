@@ -1,53 +1,58 @@
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from app.schemas.topic import TopicIn, TopicOut, Topics
+from app.schemas.language import LanguageIn, LanguageOut, Languages
 from app.schemas.generic import Message
-from app.services import topic
+from app.services import language
 from app.utils import success_message
 
-bp = APIBlueprint('topic', __name__)
+
+bp = APIBlueprint('language', __name__)
+
 
 @bp.post('/')
-@bp.input(TopicIn)
+@bp.input(LanguageIn)
 @bp.output(Message)
 @jwt_required()
-def create_topic(data):
+def create_language(data):
     try:
         data['updated_by'] = get_jwt()['username']
-        topic.create_topic(data)
+        language.create_language(data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:
         abort(500, str(ex))
 
-@bp.get('/<string:topicid>')
-@bp.output(TopicOut)
-def get_topic_detail(topicid):
+
+@bp.get('/<string:languageid>')
+@bp.output(LanguageOut)
+def get_language_detail(languageid):
     try:
-        return TopicOut().dump(topic.get_topic_by_id(topicid))
+        return language.get_language_by_id(languageid)
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:
         abort(500, str(ex))
 
+
 @bp.get('/')
-@bp.output(Topics)
+@bp.output(Languages)
 def get_topics():
     try:
-        return Topics().dump({'items': topic.get_topics()})
+        return Languages().dump({'items': language.get_languages()})
     except Exception as ex:
         abort(500, str(ex))
 
-@bp.patch('/<string:topicid>')
-@bp.input(TopicIn)
+
+@bp.patch('/<string:languageid>')
+@bp.input(LanguageIn)
 @bp.output(Message)
 @jwt_required()
-def update_topic(topicid, data):
+def update_language(languageid, data):
     try:
         data['updated_by'] = get_jwt()['username']
-        topic.update_topic(topicid, data)
+        language.update_language(languageid, data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)

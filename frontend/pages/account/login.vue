@@ -24,7 +24,7 @@ v-row(class="fill-height my-0 mx-0 white")
 </template>
 
 <script>
-import generalRules from '../../mixins/form-rules/generalRules'
+import generalRules from '../../mixins/form-rules/general-rules'
 import passwordRules from '../../mixins/form-rules/passwords'
 import { loginUrl, accountProfileUrl } from '~/mixins/routes'
 

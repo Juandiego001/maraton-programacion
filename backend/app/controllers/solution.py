@@ -1,22 +1,23 @@
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from app.services import role
-from app.schemas.role import RoleIn, RoleOut, Roles
+from app.services import solution
+from app.schemas.solution import SolutionIn, SolutionOut, Solutions
 from app.schemas.generic import Message
 from app.utils import success_message
 
-bp = APIBlueprint('role', __name__)
+
+bp = APIBlueprint('solution', __name__)
 
 
 @bp.post('/')
-@bp.input(RoleIn)
+@bp.input(SolutionIn, location='files')
 @bp.output(Message)
 @jwt_required()
-def create_role(data):
+def create_solution(files_data):
     try:
-        data['updated_by'] = get_jwt()['username']
-        role.create_rol(data)
+        files_data['updated_by'] = get_jwt()['username']
+        solution.create_solution(files_data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
@@ -25,33 +26,33 @@ def create_role(data):
 
 
 @bp.get('/')
-@bp.output(Roles)
-def get_roles():
+@bp.output(Solutions)
+def get_solutions():
     try:
-        return Roles().dump({'items': role.get_roles()})
+        return Solutions().dump({'items': solution.get_solutions()})
     except Exception as ex:
         abort(500, str(ex))
 
 
-@bp.get('/<string:roleid>')
-@bp.output(RoleOut)
-def get_role(roleid):
+@bp.get('/<string:solutionid>')
+@bp.output(SolutionOut)
+def get_solution(solutionid):
     try:
-        return role.get_role_by_id(roleid)
+        return solution.get_solution_by_id(solutionid)
     except HTTPException as ex:
         abort(404, ex.description)
     except Exception as ex:
         abort(500, str(ex))
 
 
-@bp.patch('/<string:roleid>')
-@bp.input(RoleIn)
+@bp.patch('/<string:solutionid>')
+@bp.input(SolutionIn, location='files')
 @bp.output(Message)
 @jwt_required()
-def update_role(roleid, data):
+def update_role(solutionid, files_data):
     try:
-        data['updated_by'] = get_jwt()['username']
-        role.update_role(roleid, data)
+        files_data['updated_by'] = get_jwt()['username']
+        solution.update_solution(solutionid, files_data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)

@@ -15,19 +15,13 @@ v-dialog(:value="dialog" max-width="600px" scrollable
             v-form
               v-row(dense)
                 v-col(cols="12" md="6")
-                  text-field(:value="profile.name" label="Nombre"
+                  text-field(v-model="profile.name" label="Nombre"
                   :readonly="true" dense)
                 v-col(cols="12" md="6")
-                  text-field(:value="profile.lastname" label="Apellido"
+                  text-field(v-model="profile.username" label="Usuario"
                   :readonly="true" dense)
-                v-col(cols="12" md="6")
-                  text-field(:value="profile.username" label="Usuario"
-                  :readonly="true" dense)
-                v-col(cols="12" md="6")
-                  text-field(:value="profile.document" label="Documento"
-                  :readonly="true" dense)
-                v-col(cols="12")
-                  text-field(:value="profile.email" label="Correo"
+                v-col(cols="12" md="12")
+                  text-field(v-model="profile.email" label="Correo"
                   :readonly="true" dense)
 
         v-expansion-panel
@@ -57,7 +51,7 @@ v-dialog(:value="dialog" max-width="600px" scrollable
 
 <script>
 import { changePasswordUrl } from '~/mixins/routes'
-import generalRules from '~/mixins/form-rules/generalRules'
+import generalRules from '~/mixins/form-rules/general-rules'
 import passwordRules from '~/mixins/form-rules/passwords'
 
 export default {

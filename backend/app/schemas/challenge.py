@@ -21,6 +21,9 @@ class ChallengeOut(DefaultAuto):
     difficulty = fields.String()
     contest = fields.Nested(ContestChallengeOut)
     topics = fields.List(fields.Nested(TopicOut))
+    full_challenge = fields.Function(
+        lambda challenge: f'{challenge["title"]} - \
+            {challenge["contest"]["full_contest"]}')
     status = fields.Boolean()
 
 

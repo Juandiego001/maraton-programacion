@@ -1,27 +1,25 @@
-from bson import ObjectId
 from flask import send_file
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from app.services import solution
-from app.schemas.solution import SolutionIn, SolutionOut, Solutions
+from app.services import material
+from app.schemas.material import MaterialIn, MaterialOut, Materials
 from app.schemas.generic import Message
 from dropbox.exceptions import HttpError
 from app.utils import success_message
 
 
-bp = APIBlueprint('solution', __name__)
+bp = APIBlueprint('material', __name__)
 
 
 @bp.post('/')
-@bp.input(SolutionIn, location='files')
+@bp.input(MaterialIn, location='files')
 @bp.output(Message)
 @jwt_required()
-def create_solution(files_data):
+def create_material(files_data):
     try:
-        files_data['userid'] = ObjectId(get_jwt()['_id'])
         files_data['updated_by'] = get_jwt()['username']
-        solution.create_solution(files_data)
+        material.create_material(files_data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
@@ -30,33 +28,33 @@ def create_solution(files_data):
 
 
 @bp.get('/')
-@bp.output(Solutions)
-def get_solutions():
+@bp.output(Materials)
+def get_materials():
     try:
-        return Solutions().dump({'items': solution.get_solutions()})        
+        return Materials().dump({'items': material.get_materials()})
     except Exception as ex:
         abort(500, str(ex))
 
 
-@bp.get('/<string:solutionid>')
-@bp.output(SolutionOut)
-def get_solution(solutionid):
+@bp.get('/<string:materialid>')
+@bp.output(MaterialOut)
+def get_material(materialid):
     try:
-        return solution.get_solution_by_id(solutionid)
+        return material.get_material_by_id(materialid)
     except HTTPException as ex:
         abort(404, ex.description)
     except Exception as ex:
         abort(500, str(ex))
 
 
-@bp.patch('/<string:solutionid>')
-@bp.input(SolutionIn, location='files')
+@bp.patch('/<string:materialid>')
+@bp.input(MaterialIn, location='files')
 @bp.output(Message)
 @jwt_required()
-def update_role(solutionid, files_data):
+def update_role(materialid, files_data):
     try:
         files_data['updated_by'] = get_jwt()['username']
-        solution.update_solution(solutionid, files_data)
+        material.update_material(materialid, files_data)
         return success_message()
     except HTTPException as ex:
         abort(400, ex.description)
@@ -64,10 +62,10 @@ def update_role(solutionid, files_data):
         abort(500, str(ex))
 
 
-@bp.get('/download/<string:solutionid>')
-def download_solution(solutionid):
+@bp.get('/download/<string:materialid>')
+def download_material(materialid):
     try:
-        file_data, real_name = solution.download_solution(solutionid)
+        file_data, real_name = material.download_material(materialid)
         return send_file(file_data,
                          as_attachment=True,
                          download_name=real_name)

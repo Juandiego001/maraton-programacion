@@ -6,6 +6,9 @@ v-container(fluid)
       v-btn(class="mr-2" color="success" depressed icon
       @click="getSolution(item)")
         v-icon mdi-pencil-outline
+      v-btn(v-if="item.real_name" class="mr-2" color="primary" depressed icon
+      :href="`${downloadUrl}/${item._id}`" target="_blank")
+        v-icon mdi-download-outline
     template(#item.status="{ item }")
       | {{ item.status ? 'Activo' : 'Inactivo' }}
 
@@ -22,15 +25,24 @@ v-container(fluid)
           v-row(dense)
             v-col(class="primary--text" cols="12" md="12")
               | Información de la solución
-            v-col(cols="12" md="6")
-              v-file-input(v-model="file" filled label="Subir archivo"
+            v-col(cols="12" md="12")
+              v-select(v-model="form.challengeid" label="Reto" filled
+              :items="challenges" item-text="full_challenge" item-value="_id"
               hide-details="auto" :rules="generalRules")
+            v-col(v-if="form.real_name" cols="12" md="6")
+              v-text-field(v-model="form.real_name" filled
+              label="Nombre del archivo" hide-details="auto" readonly)
             v-col(cols="12" md="6")
               v-select(v-model="form.languageid" label="Lenguaje" filled
               :items="languages" item-text="name" item-value="_id"
               hide-details="auto" :rules="generalRules")
+            v-col(cols="12" :md="form.real_name ? 12 : 6")
+              v-file-input(v-model="file" filled
+              :label="form.real_name ? 'Subir otro archivo' : 'Subir archivo'"
+              hide-details="auto" :rules="fileLinkRules")
             v-col(cols="12" md="12")
-              text-field(v-model="form.link" label="Enlace")
+              text-field(v-model="form.link" label="Enlace"
+              :rules="fileLinkRules")
             v-col(cols="12" md="6")
               text-field(v-model="form.judgment_status"
               label="Respuesta del juez")
@@ -57,10 +69,11 @@ v-container(fluid)
 
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
-import { solutionUrl, languageUrl } from '../../mixins/routes'
+import fileLinkRules from '../../mixins/form-rules/file-link'
+import { solutionUrl, languageUrl, challengeUrl } from '../../mixins/routes'
 
 export default {
-  mixins: [generalRules],
+  mixins: [generalRules, fileLinkRules],
 
   data () {
     return {
@@ -68,6 +81,7 @@ export default {
       total: -1,
       items: [],
       languages: [],
+      challenges: [],
       file: null,
       form: {
         _id: '',
@@ -88,13 +102,17 @@ export default {
     headers () {
       return [
         { text: 'Archivo', value: 'real_name' },
-        { text: 'Enlace', value: 'link' },
-        { text: 'Estado', value: 'status' },
+        { text: 'Lenguaje', value: 'language' },
+        { text: 'Reto', value: 'full_challenge' },
+        { text: 'Hecho por', value: 'username' },
         { text: 'Opciones', value: 'options' }
       ]
     },
     formTitle () {
       return this.form._id ? 'Editar solución' : 'Crear solución'
+    },
+    downloadUrl () {
+      return `${solutionUrl}download`
     }
   },
 
@@ -102,10 +120,11 @@ export default {
     options: { handler () { this.getData() } },
     dialogEdit (value) {
       if (!value) {
-        this.$refs.form.reset()
         this.form._id = ''
+        this.$refs.form.reset()
       } else {
         this.getLanguages()
+        this.getChallenges()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     }
@@ -128,7 +147,7 @@ export default {
     getFormData () {
       const formData = new FormData()
       for (const key of Object.keys(this.form)) {
-        formData.append(key, this.form[key])
+        if (this.form[key]) { formData.append(key, this.form[key]) }
       }
       if (this.file) {
         formData.append('file', this.file)
@@ -141,8 +160,6 @@ export default {
         let message
         const formData = this.getFormData()
         if (this.form._id) {
-          // eslint-disable-next-line no-console
-          console.log('LLEGA A ACTUALIZAR');
           ({ message } = await this.$axios.$patch(
             `${solutionUrl}${this.form._id}`, formData))
         } else {
@@ -166,6 +183,13 @@ export default {
     async getLanguages () {
       try {
         this.languages = (await this.$axios.$get(languageUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getChallenges () {
+      try {
+        this.challenges = (await this.$axios.$get(challengeUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }

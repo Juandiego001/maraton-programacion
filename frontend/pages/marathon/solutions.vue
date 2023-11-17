@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
+  :options.sync="options" :search="search")
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
       @click="getSolution(item)")
@@ -9,6 +9,9 @@ v-container(fluid)
       v-btn(v-if="item.real_name" class="mr-2" color="primary" depressed icon
       :href="`${downloadUrl}/${item._id}`" target="_blank")
         v-icon mdi-download-outline
+      v-btn(v-if="item.link" color="primary" :href="item.link" target="_blank"
+      icon)
+        v-icon mdi-link
     template(#item.status="{ item }")
       | {{ item.status ? 'Activo' : 'Inactivo' }}
 
@@ -65,6 +68,8 @@ v-container(fluid)
         v-card-actions
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
+
+  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
 </template>
 
 <script>
@@ -80,6 +85,7 @@ export default {
       options: {},
       total: -1,
       items: [],
+      search: '',
       languages: [],
       challenges: [],
       file: null,
@@ -147,7 +153,7 @@ export default {
     getFormData () {
       const formData = new FormData()
       for (const key of Object.keys(this.form)) {
-        if (this.form[key]) { formData.append(key, this.form[key]) }
+        if (this.form[key] != null) { formData.append(key, this.form[key]) }
       }
       if (this.file) {
         formData.append('file', this.file)
@@ -193,6 +199,10 @@ export default {
       } catch (err) {
         this.showSnackbar(err)
       }
+    },
+    doSearch (value) {
+      this.search = value
+      this.dialogSearch = false
     }
   }
 }

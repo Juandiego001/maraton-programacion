@@ -1,6 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
+  :search="search"
   :options.sync="options")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
@@ -62,6 +63,8 @@ v-container(fluid)
         v-card-actions
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
+
+  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
 </template>
 
 <script>
@@ -76,6 +79,7 @@ export default {
       options: {},
       total: -1,
       items: [],
+      search: '',
       activePicker: null,
       menu: false,
       form: {
@@ -163,6 +167,10 @@ export default {
     },
     saveDate (date) {
       this.$refs.menu.save(date)
+    },
+    doSearch (value) {
+      this.search = value
+      this.dialogSearch = false
     }
   }
 }

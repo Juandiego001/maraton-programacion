@@ -1,3 +1,4 @@
+from bson import ObjectId
 from flask import send_file
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
@@ -18,6 +19,7 @@ bp = APIBlueprint('material', __name__)
 @jwt_required()
 def create_material(files_data):
     try:
+        files_data['userid'] = ObjectId(get_jwt()['_id'])
         files_data['updated_by'] = get_jwt()['username']
         material.create_material(files_data)
         return success_message()
@@ -73,5 +75,16 @@ def download_material(materialid):
         abort(ex.status_code, ex.body)
     except HTTPException as ex:
         abort(404, ex.description)
+    except Exception as ex:
+        abort(500, str(ex))
+
+
+@bp.delete('/<string:materialid>')
+def delete_material(materialid):
+    try:
+        material.delete_file(materialid)
+        return success_message()
+    except HTTPException as ex:
+        abort(400, ex.description)
     except Exception as ex:
         abort(500, str(ex))

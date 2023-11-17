@@ -92,6 +92,7 @@ def get_solutions():
         }, {
             '$project': {
                 'real_name': 1,
+                'link': 1,
                 'language': '$language.name',
                 'full_challenge': {
                     '$concat': [

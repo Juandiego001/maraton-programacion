@@ -1,22 +1,27 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
-
+  :options.sync="options" :search="search")
     template(#item.options="{ item }")
-      v-btn(class="mr-2" color="success" depressed icon
-      @click="getUser(item)")
+      v-btn(color="success" depressed icon @click="getMaterial(item)")
         v-icon mdi-pencil-outline
-      v-btn(v-if="item.status === 'PENDING'" class="mr-2" color="primary"
-      icon @click="resendLink(item)")
-        v-icon mdi-email-fast-outline
+      v-btn(v-if="item.real_name" color="primary"
+      :href="`${downloadUrl}/${item.file_url}`" target="_blank" icon)
+        v-icon mdi-download-outline
+      v-btn(v-if="item.link" color="primary" :href="item.link" target="_blank"
+      icon)
+        v-icon mdi-link
+      v-btn(color="error" icon @click="showConfirmDelete(item)")
+        v-icon mdi-trash-can-outline
+    template(#item.status="{ item }")
+      | {{ item.status ? 'Activo' : 'Inactivo' }}
 
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
-    v-form(ref="form" @submit.prevent="saveUser")
+    v-form(ref="form" @submit.prevent="saveMaterial")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title(class="primary white--text")
-          | {{ form._id ? 'Editar usuario' : 'Crear usuario' }}
+          | {{ formTitle }}
           v-spacer
           v-btn(class="white--text" icon @click="dialogEdit=false")
             v-icon mdi-close
@@ -24,25 +29,25 @@ v-container(fluid)
         v-card-text(class="my-3")
           v-row(dense)
             v-col(class="primary--text" cols="12" md="12")
-              | Información del usuario
-            v-col(cols="12" md="6")
-              text-field(v-model="form.name" label="Nombre completo"
-              :rules="generalRules")
-            v-col(cols="12" md="6")
-              text-field(v-model="form.username" label="Usuario"
-              :rules="generalRules")
+              | Información del material
+            v-col(v-if="form.real_name" cols="12" md="6")
+              v-text-field(v-model="form.real_name" label="Nombre del archivo"
+              filled dense readonly hide-details="auto")
+            v-col(v-if="form.username" cols="12" md="6")
+              v-text-field(v-model="form.username" label="Creado por"
+              filled dense readonly hide-details="auto")
             v-col(cols="12" md="12")
-              text-field(v-model="form.email" label="Correo"
-              :rules="generalRules")
+              v-file-input(v-model="file" filled dense
+              :label="form.real_name ? 'Subir otro archivo' : 'Subir archivo'"
+              hide-details="auto" :rules="fileLinkRules")
             v-col(cols="12" md="12")
-              text-field-password(v-model="form.password" label="Contraseña"
-                :rules="passwordEmptyRules")
+              text-field(v-model="form.link" label="Enlace"
+              :rules="fileLinkRules")
 
           v-row(v-if="form._id" dense)
             v-col(cols="12")
-              v-select(v-model="form.status" label="Estado" filled dense
-              hide-details="auto" :items="userStatus" item-value="value"
-              item-text="text")
+              v-checkbox(v-model="form.status" label="Activo"
+              hide-details="auto")
             v-col(class="text-caption" cols="12" md="6")
               | ID: {{ form._id }}
             v-col(class="text-caption text-md-right" cols="12" md="6")
@@ -52,62 +57,65 @@ v-container(fluid)
         v-card-actions
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
+
+  v-dialog(v-model="confirmDelete" max-width="500px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
+    v-card(flat :tile="$vuetify.breakpoint.smAndDown")
+      v-card-title.error.white--text
+        | Confirmar eliminación
+        v-spacer
+        v-btn.white--text(icon @click="confirmDelete=false")
+          v-icon mdi-close
+      v-card-text.mt-3 ¿Seguro que desea eliminar el material?
+      v-card-actions
+        v-spacer
+        v-btn.error(@click="deleteFile") Confirmar
+
+  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
 </template>
 
 <script>
-import passwordsEmptyRules from '../../mixins/form-rules/passwords-empty'
-import generalRules from '../../mixins/form-rules/general-rules'
-import { userUrl } from '../../mixins/routes'
+import fileLinkRules from '~/mixins/form-rules/file-link'
+import { materialUrl } from '~/mixins/routes'
 
 export default {
-  mixins: [generalRules, passwordsEmptyRules],
+  mixins: [fileLinkRules],
 
   data () {
     return {
       options: {},
       total: -1,
       items: [],
+      search: '',
+      file: null,
+      confirmDelete: false,
       form: {
         _id: '',
-        name: '',
-        username: '',
-        email: '',
-        password: ''
-      },
-      photo: null
+        real_name: '',
+        file_url: '',
+        link: '',
+        username: ''
+      }
     }
   },
 
   head () {
-    return { title: 'Users' }
+    return { title: 'Materials' }
   },
 
   computed: {
     headers () {
       return [
-        { text: 'Nombre completo', value: 'name' },
-        { text: 'Usuario', value: 'username' },
-        { text: 'Email', value: 'email' },
+        { text: 'Archivo', value: 'real_name' },
         { text: 'Estado', value: 'status' },
-        { text: 'Opciones', value: 'options' }
+        { text: 'Opciones', align: 'center', value: 'options' }
       ]
     },
-    userStatus () {
-      return [
-        {
-          text: 'Activo',
-          value: 'ACTIVE'
-        },
-        {
-          text: 'Pendiente de activación',
-          value: 'PENDING',
-          disabled: true
-        },
-        {
-          text: 'Inactivo',
-          value: 'INACTIVE'
-        }
-      ]
+    formTitle () {
+      return this.form._id ? 'Editar material' : 'Crear material'
+    },
+    downloadUrl () {
+      return `${materialUrl}download`
     }
   },
 
@@ -117,8 +125,14 @@ export default {
       if (!value) {
         this.$refs.form.reset()
         this.form._id = ''
+        this.file = null
       } else {
         this.$refs.form && this.$refs.form.resetValidation()
+      }
+    },
+    confirmDelete (value) {
+      if (!value) {
+        this.form._id = ''
       }
     }
   },
@@ -131,23 +145,30 @@ export default {
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(userUrl)
-        this.items = data.items
+        this.items = (await this.$axios.$get(materialUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }
     },
-    async saveUser () {
+    getFormData () {
+      const formData = new FormData()
+      for (const key of Object.keys(this.form)) {
+        if (this.form[key] != null) { formData.append(key, this.form[key]) }
+      }
+      if (this.file) { formData.append('file', this.file) }
+      return formData
+    },
+    async saveMaterial () {
       try {
         if (!this.$refs.form.validate()) { return }
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
-            `${userUrl}${this.form._id}`, this.form))
+            `${materialUrl}${this.form._id}`, this.getFormData()))
         } else {
-          ({ message } = await this.$axios.$post(userUrl, this.form))
+          ({ message } = await this.$axios.$post(materialUrl,
+            this.getFormData()))
         }
-
         this.getData()
         this.dialogEdit = false
         this.showSnackbar(message)
@@ -155,13 +176,32 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getUser (item) {
+    async getMaterial (item) {
       try {
-        this.form = (await this.$axios.$get(`${userUrl}${item._id}`))
+        this.form = (await this.$axios.$get(`${materialUrl}${item._id}`))
         this.dialogEdit = true
       } catch (err) {
         this.showSnackbar(err)
       }
+    },
+    showConfirmDelete (item) {
+      this.form._id = item._id
+      this.confirmDelete = true
+    },
+    async deleteFile () {
+      try {
+        const { message } = await this.$axios.$delete(
+          `${materialUrl}${this.form._id}`)
+        this.getData()
+        this.confirmDelete = false
+        this.showSnackbar(message)
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    doSearch (value) {
+      this.search = value
+      this.dialogSearch = false
     }
   }
 }

@@ -32,3 +32,6 @@ export const contestUrl = '/api/contest/'
 
 // Retos
 export const challengeUrl = '/api/challenge/'
+
+// Material
+export const materialUrl = '/api/material/'

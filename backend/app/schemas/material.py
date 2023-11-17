@@ -9,6 +9,7 @@ class MaterialIn(DefaultAuto):
 
 
 class MaterialOut(DefaultAuto):
+    username = fields.String()
     file_url = fields.String()
     link = fields.String()
     real_name = fields.String()

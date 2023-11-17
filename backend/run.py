@@ -9,6 +9,7 @@ from app.controllers.contest import bp as bp_contest
 from app.controllers.challenge import bp as bp_challenge
 from app.controllers.permission import bp as bp_permission
 from app.controllers.solution import bp as bp_solution
+from app.controllers.material import bp as bp_material
 
 
 app.register_blueprint(bp_account, url_prefix='/api/account')
@@ -21,6 +22,7 @@ app.register_blueprint(bp_contest, url_prefix='/api/contest')
 app.register_blueprint(bp_challenge, url_prefix='/api/challenge')
 app.register_blueprint(bp_permission, url_prefix='/api/permission')
 app.register_blueprint(bp_solution, url_prefix='/api/solution')
+app.register_blueprint(bp_material, url_prefix='/api/material')
 
 
 if __name__ == '__main__':

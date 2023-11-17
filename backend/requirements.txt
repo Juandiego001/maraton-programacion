@@ -10,6 +10,7 @@ Flask-HTTPAuth==4.8.0
 Flask-JWT-Extended==4.4.4
 flask-marshmallow==0.15.0
 Flask-PyMongo==2.3.0
+gunicorn==21.2.0
 idna==3.4
 importlib-metadata==6.7.0
 itsdangerous==2.1.2
@@ -21,7 +22,7 @@ PyJWT==2.8.0
 pymongo==4.5.0
 python-dotenv==0.21.1
 requests==2.31.0
-typing-extensions==4.7.1
+typing_extensions==4.7.1
 urllib3==2.0.4
 webargs==8.3.0
 Werkzeug==2.2.3

@@ -27,6 +27,12 @@ export const structureUrl = '/api/structure/'
 // Languages
 export const languageUrl = '/api/language/'
 
+// Sources
+export const sourceUrl = '/api/source/'
+
+// Difficulties
+export const difficultyUrl = '/api/difficulty/'
+
 // Competencia
 export const contestUrl = '/api/contest/'
 

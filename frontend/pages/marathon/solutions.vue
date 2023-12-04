@@ -36,9 +36,10 @@ v-container(fluid)
               v-text-field(v-model="form.real_name" filled
               label="Nombre del archivo" hide-details="auto" readonly)
             v-col(cols="12" md="6")
-              v-select(v-model="form.languageid" label="Lenguaje" filled
-              :items="languages" item-text="name" item-value="_id"
-              hide-details="auto" :rules="generalRules")
+              v-select(v-model="form.sourceid" label="Archivo fuente asociado"
+              filled :items="sources" item-text="full_source" item-value="_id"
+              hide-details="auto" :rules="generalRules"
+              :disabled="!sources.length")
             v-col(cols="12" :md="form.real_name ? 12 : 6")
               v-file-input(v-model="file" filled
               :label="form.real_name ? 'Subir otro archivo' : 'Subir archivo'"
@@ -75,7 +76,8 @@ v-container(fluid)
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
 import fileLinkRules from '../../mixins/form-rules/file-link'
-import { solutionUrl, languageUrl, challengeUrl } from '../../mixins/routes'
+import { solutionUrl, sourceUrl, challengeUrl }
+  from '../../mixins/routes'
 
 export default {
   mixins: [generalRules, fileLinkRules],
@@ -86,12 +88,13 @@ export default {
       total: -1,
       items: [],
       search: '',
-      languages: [],
+      sources: [],
       challenges: [],
       file: null,
       form: {
         _id: '',
-        languageid: '',
+        challengeid: '',
+        sourceid: '',
         link: '',
         description: '',
         judgment_status: '',
@@ -108,7 +111,7 @@ export default {
     headers () {
       return [
         { text: 'Archivo', value: 'real_name' },
-        { text: 'Lenguaje', value: 'language' },
+        { text: 'Archivo fuente asociado', value: 'full_source' },
         { text: 'Reto', value: 'full_challenge' },
         { text: 'Hecho por', value: 'username' },
         { text: 'Opciones', value: 'options' }
@@ -129,9 +132,15 @@ export default {
         this.form._id = ''
         this.$refs.form.reset()
       } else {
-        this.getLanguages()
         this.getChallenges()
         this.$refs.form && this.$refs.form.resetValidation()
+      }
+    },
+    'form.challengeid' (value) {
+      if (value) {
+        // eslint-disable-next-line no-console
+        console.log('LLEGO AQUI: ', value)
+        this.getSources(value)
       }
     }
   },
@@ -186,9 +195,12 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getLanguages () {
+    async getSources (challengeid) {
       try {
-        this.languages = (await this.$axios.$get(languageUrl)).items
+        this.sources = (await this.$axios.$get(
+        `${sourceUrl}languages/${challengeid}`)).items
+        // eslint-disable-next-line no-console
+        console.log('LOS SOURCES: ', this.sources)
       } catch (err) {
         this.showSnackbar(err)
       }

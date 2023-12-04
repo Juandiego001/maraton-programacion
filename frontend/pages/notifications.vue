@@ -55,9 +55,9 @@ v-container(fluid)
 </template>
 
 <script>
-import passwordsEmptyRules from '../../mixins/form-rules/passwords-empty'
-import generalRules from '../../mixins/form-rules/general-rules'
-import { userUrl } from '../../mixins/routes'
+import passwordsEmptyRules from '~/mixins/form-rules/passwords-empty'
+import generalRules from '~/mixins/form-rules/general-rules'
+import { userUrl } from '~/mixins/routes'
 
 export default {
   mixins: [generalRules, passwordsEmptyRules],

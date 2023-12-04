@@ -20,7 +20,6 @@ def put_file(file: FileStorage, solutionid: str):
 
 
 def create_solution(params: dict):
-    print('params********', params)
     if not verify_if_language_exists({'_id': ObjectId(params['languageid'])}):
         raise HTTPException('El lenguaje asociado a la solución no existe')
     solutionid = ObjectId()
@@ -90,10 +89,52 @@ def get_solutions():
                 'path': '$user'
             }
         }, {
+            '$lookup': {
+                'from': 'sources',
+                'localField': 'sourceid',
+                'foreignField': '_id',
+                'pipeline': [
+                    {
+                        '$lookup': {
+                            'from': 'challenges',
+                            'localField': 'challengeid',
+                            'foreignField': '_id',
+                            'as': 'challenge'
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$challenge'
+                        }
+                    }, {
+                        '$lookup': {
+                            'from': 'languages',
+                            'localField': 'languageid',
+                            'foreignField': '_id',
+                            'as': 'language'
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$language'
+                        }
+                    }
+                ],
+                'as': 'sources'
+            }
+        }, {
+            '$unwind': {
+                'path': '$sources'
+            }
+        }, {
             '$project': {
                 'real_name': 1,
                 'link': 1,
                 'language': '$language.name',
+                'full_source': {
+                    '$concat': [
+                        '$source.challenge.name',
+                        '$source.language.extension'
+                    ]
+                },
                 'full_challenge': {
                     '$concat': [
                         '$challenge.title',

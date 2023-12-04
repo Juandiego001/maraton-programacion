@@ -33,6 +33,12 @@ modules = [
         'updated_by': admin['username']
     },
     {
+        'name': 'Dificultades',
+        'status': True,
+        'updated_at': datetime.now(),
+        'updated_by': admin['username']
+    },
+    {
         'name': 'Notificaciones',
         'status': True,
         'updated_at': datetime.now(),

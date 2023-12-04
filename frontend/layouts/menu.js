@@ -4,16 +4,6 @@ export default [
     title: 'Administración',
     items: [
       {
-        icon: 'mdi-shield-account-variant-outline',
-        title: 'Roles',
-        to: '/administration/roles'
-      },
-      {
-        icon: 'mdi-account',
-        title: 'Usuarios',
-        to: '/administration/users'
-      },
-      {
         icon: 'mdi-tag-multiple-outline',
         title: 'Temáticas',
         to: '/administration/topics'
@@ -29,9 +19,25 @@ export default [
         to: '/administration/languages'
       },
       {
-        icon: 'mdi-bell-outline',
-        title: 'Notificaciones',
-        to: '/administration/notifications'
+        icon: 'mdi-clock-fast',
+        title: 'Dificultades',
+        to: '/administration/difficulties'
+      }
+    ]
+  },
+  {
+    icon: 'mdi-account-multiple',
+    title: 'Usuario',
+    items: [
+      {
+        icon: 'mdi-shield-account-variant-outline',
+        title: 'Roles',
+        to: '/user/roles'
+      },
+      {
+        icon: 'mdi-account',
+        title: 'Usuarios',
+        to: '/user/users'
       }
     ]
   },

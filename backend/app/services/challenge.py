@@ -6,6 +6,9 @@ from bson import ObjectId
 def create_topics_challenge(params: list):
     return mongo.db.topics_challenge.insert_many(params)
 
+def create_languages_challenge(params: list):
+    return mongo.db.sources.insert_many(params)
+
 def create_challenge(params: dict):
     challenge = verify_if_challenge_exists(params['title'], params['contestid'])
     if challenge:
@@ -13,6 +16,10 @@ def create_challenge(params: dict):
     params['status'] = True
     params['created_at'] = datetime.now()
     params['updated_at'] = datetime.now()
+
+    languagesid = []
+    if 'languagesid' in params:
+        languagesid = params.pop('languagesid')
 
     topicsid = []
     if 'topicsid' in params:
@@ -22,6 +29,16 @@ def create_challenge(params: dict):
     if not challengeid:
         raise HTTPException('Ocurrió un error al intentar insertar el reto')
     
+    languages_challenge = []
+    for languageid in languagesid:
+        if not mongo.db.languages.find_one(ObjectId(languageid)):
+            raise HTTPException('Hay lenguajes asociados que no existen')
+        languages_challenge.append({'challengeid': challengeid,
+                                 'languageid': languageid})
+    
+    if len(languages_challenge):
+        create_languages_challenge(languages_challenge)
+
     topics_challenge = []
     for topicid in topicsid:
         if not mongo.db.topics.find_one(ObjectId(topicid)):
@@ -86,6 +103,27 @@ def get_challenge_by_id(challengeid: str):
                 'as': 'topics_challenge'
             }
         }, {
+            '$lookup': {
+                'from': 'sources',
+                'localField': '_id',
+                'foreignField': 'challengeid',
+                'pipeline': [
+                    {
+                        '$lookup': {
+                            'from': 'languages',
+                            'localField': 'languageid',
+                            'foreignField': '_id',
+                            'as': 'languages'
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$languages'
+                        }
+                    }
+                ],
+                'as': 'sources'
+            }
+        }, {
             '$match': {
                 '$expr': {
                     '$eq': [
@@ -97,12 +135,13 @@ def get_challenge_by_id(challengeid: str):
             '$project': {
                 '_id': 1, 
                 'title': 1, 
-                'source': 1, 
+                'name': 1, 
                 'created_at': 1,
                 'updated_at': 1, 
                 'updated_by': 1, 
                 'status': 1,
-                'difficulty': 1,
+                'languagesid': '$sources.languages._id',
+                'difficultyid': 1,
                 'contestid': '$contest._id',
                 'topicsid': '$topics_challenge.topics._id',
                 'contest': {
@@ -113,6 +152,10 @@ def get_challenge_by_id(challengeid: str):
                     }
                 },
                 'topics': '$topics_challenge.topics'
+            }
+        }, {
+            '$sort': {
+                '$contest.made_at': -1
             }
         }]).try_next()
     if not challenge:
@@ -215,6 +258,13 @@ def update_challenge(challengeid, params):
     if title and verify_if_challenge_exists(title, contestid):
         raise HTTPException('El reto ya ha sido registrado')
     
+    if 'languagesid' in params:
+        mongo.db.sources.delete_many({'challengeid': challengeid})
+        mongo.db.sources.insert_many([
+            {'challengeid': challengeid,
+                'languageid': languageid}
+        for languageid in params['languagesid']])
+
     if 'topicsid' in params:
         mongo.db.topics_challenge.delete_many({'challengeid': challengeid})
         mongo.db.topics_challenge.insert_many([

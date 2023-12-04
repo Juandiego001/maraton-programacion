@@ -22,13 +22,13 @@ v-container(fluid)
         v-card-text(class="my-3")
           v-row(dense)
             v-col(class="primary--text" cols="12" md="12")
-              | Información del lenguaje
+              | Información del dificultad
             v-col(cols="12" md="6")
               text-field(v-model="form.name" label="Nombre"
               :rules="generalRules")
             v-col(cols="12" md="6")
-              text-field(v-model="form.extension" label="Extension"
-              :rules="generalRules")
+              v-text-field(v-model="form.value" dense filled depressed
+              label="Valor" :rules="numberRules" maxlength="2")
             v-col(cols="12" md="12")
               v-textarea(v-model="form.description" label="Descripción"
               filled depressed auto-grow)
@@ -50,11 +50,12 @@ v-container(fluid)
 </template>
 
 <script>
-import generalRules from '../../mixins/form-rules/general-rules'
-import { languageUrl } from '../../mixins/routes'
+import generalRules from '~/mixins/form-rules/general-rules'
+import numberRules from '~/mixins/form-rules/numbers'
+import { difficultyUrl } from '~/mixins/routes'
 
 export default {
-  mixins: [generalRules],
+  mixins: [generalRules, numberRules],
 
   data () {
     return {
@@ -65,21 +66,21 @@ export default {
       form: {
         _id: '',
         name: '',
-        description: '',
-        extension: ''
+        value: 0,
+        description: ''
       }
     }
   },
 
   head () {
-    return { title: 'Languages' }
+    return { title: 'Difficulties' }
   },
 
   computed: {
     headers () {
       return [
-        { text: 'Lenguaje', align: 'center', width: 6, value: 'name' },
-        { text: 'Extensión', align: 'center', width: 6, value: 'extension' },
+        { text: 'Dificultad', align: 'center', width: 6, value: 'name' },
+        { text: 'Valor', align: 'center', width: 6, value: 'value' },
         { text: 'Descripción', align: 'center', width: 12, value: 'description' },
         { text: 'Estado', align: 'center', width: 6, value: 'status' },
         { text: 'Opciones', align: 'center', width: 6, value: 'options' }
@@ -87,8 +88,8 @@ export default {
     },
     formTitle () {
       return this.form._id
-        ? 'Editar lenguaje'
-        : 'Crear lenguaje'
+        ? 'Editar dificultad'
+        : 'Crear dificultad'
     }
   },
 
@@ -98,7 +99,6 @@ export default {
       if (!value) {
         this.$refs.form.reset()
         this.form._id = ''
-        this.form = { _id: '', name: '', description: '', extension: '' }
       } else {
         this.$refs.form && this.$refs.form.resetValidation()
       }
@@ -113,7 +113,7 @@ export default {
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(languageUrl)
+        const data = await this.$axios.$get(difficultyUrl)
         this.items = data.items
       } catch (err) {
         this.showSnackbar(err)
@@ -125,9 +125,9 @@ export default {
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
-              `${languageUrl}${this.form._id}`, this.form))
+              `${difficultyUrl}${this.form._id}`, this.form))
         } else {
-          ({ message } = await this.$axios.$post(languageUrl, this.form))
+          ({ message } = await this.$axios.$post(difficultyUrl, this.form))
         }
 
         this.getData()
@@ -139,7 +139,7 @@ export default {
     },
     async getLanguage (item) {
       try {
-        this.form = (await this.$axios.$get(`${languageUrl}${item._id}`))
+        this.form = (await this.$axios.$get(`${difficultyUrl}${item._id}`))
         this.dialogEdit = true
       } catch (err) {
         this.showSnackbar(err)

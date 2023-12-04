@@ -1,29 +1,7 @@
 <template lang="pug">
 v-container
   v-row
-    v-col(cols="2")
-      v-card(nuxt :to="'/administration/roles'" hover)
-        v-card-title.primary.white--text
-          div
-            span Roles
-            p.caption Administración
-        v-card-text
-        v-card-actions
-          v-spacer
-          v-btn(icon)
-            v-icon.primary--text mdi-shield-account-variant-outline
-    v-col(cols="2")
-      v-card(nuxt :to="'/administration/users'" hover)
-        v-card-title.primary.white--text
-          div
-            span Usuarios
-            p.caption Administración
-        v-card-text
-        v-card-actions
-          v-spacer
-          v-btn(icon)
-            v-icon.primary--text mdi-account
-    v-col(cols="2")
+    v-col(v-if="canRead('Temáticas')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/administration/topics'" hover)
         v-card-title.primary.white--text
           div
@@ -34,7 +12,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-tag-multiple-outline
-    v-col(cols="2")
+    v-col(v-if="canRead('Estructuras')" cols="2" sm="4" md="2")
       v-card(nuxt :to="'/administration/structures'" hover)
         v-card-title.primary.white--text
           div
@@ -45,7 +23,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-lan
-    v-col(cols="2")
+    v-col(v-if="canRead('Lenguajes')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/administration/languages'" hover)
         v-card-title.primary.white--text
           div
@@ -56,18 +34,41 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-codepen
-    v-col(cols="3")
-      v-card(nuxt :to="'/administration/notifications'" hover)
+    v-col(v-if="canRead('Dificultades')" cols="2" sm="4" md="2")
+      v-card(nuxt :to="'/administration/difficulties'" hover)
         v-card-title.primary.white--text
           div
-            span Notificaciones
+            span Dificultades
             p.caption Administración
         v-card-text
         v-card-actions
           v-spacer
           v-btn(icon)
-            v-icon.primary--text mdi-bell-outline
-    v-col(cols="3")
+            v-icon.primary--text mdi-clock-fast
+    v-col(v-if="canRead('Roles')" cols="2" sm="3" md="2")
+      v-card(nuxt :to="'/user/roles'" hover)
+        v-card-title.primary.white--text
+          div
+            span Roles
+            p.caption Usuario
+        v-card-text
+        v-card-actions
+          v-spacer
+          v-btn(icon)
+            v-icon.primary--text mdi-shield-account-variant-outline
+    v-col(v-if="canRead('Usuarios')" cols="2" sm="3" md="2")
+      v-card(nuxt :to="'/user/users'" hover)
+        v-card-title.primary.white--text
+          div
+            span Usuarios
+            p.caption Usuario
+        v-card-text
+        v-card-actions
+          v-spacer
+          v-btn(icon)
+            v-icon.primary--text mdi-account
+  v-row
+    v-col(v-if="canRead('Competencias')" cols="3" sm="4" md="3")
       v-card(nuxt :to="'/marathon/contests'" hover)
         v-card-title.primary.white--text
           div
@@ -78,7 +79,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-medal-outline
-    v-col(cols="2")
+    v-col(v-if="canRead('Retos')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/marathon/challenges'" hover)
         v-card-title.persian.white--text
           div
@@ -89,7 +90,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.persian--text mdi-text-box-outline
-    v-col(cols="2")
+    v-col(v-if="canRead('Soluciones')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/marathon/solutions'" hover)
         v-card-title.saffron.white--text
           div
@@ -100,7 +101,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.saffron--text mdi-code-tags
-    v-col(cols="2")
+    v-col(v-if="canRead('Materiales')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/marathon/materials'" hover)
         v-card-title.burnt.white--text
           div
@@ -125,7 +126,8 @@ export default {
   },
 
   methods: {
-    login () {
+    canRead (slug) {
+      return this.$ability.can('read', slug)
     }
   }
 }

@@ -6,19 +6,21 @@ from app.schemas.topic import TopicOut
 
 class ChallengeIn(DefaultAuto):
     title = fields.String()
-    source = fields.String()
+    name = fields.String()
     contestid = ObjectId()
+    languagesid = fields.List(ObjectId())
     topicsid = fields.List(ObjectId(), required=False)
-    difficulty = fields.String(required=False, load_default='EASY')
+    difficultyid = ObjectId()
     status = fields.Boolean(required=False)
 
 
 class ChallengeOut(DefaultAuto):
     title = fields.String()
-    source = fields.String()
+    name = fields.String()
     contestid = ObjectId()
+    languagesid = fields.List(ObjectId())
     topicsid = fields.List(ObjectId(), required=False)
-    difficulty = fields.String()
+    difficultyid = ObjectId()
     contest = fields.Nested(ContestChallengeOut)
     topics = fields.List(fields.Nested(TopicOut))
     full_challenge = fields.Function(

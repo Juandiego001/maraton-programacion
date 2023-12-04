@@ -27,14 +27,19 @@ v-container(fluid)
               text-field(v-model="form.title" label="Título"
               :rules="generalRules")
             v-col(cols="12" md="6")
-              text-field(v-model="form.source" label="Archivos aceptados")
+              text-field(v-model="form.name" label="Nombre archivo fuente")
+            v-col(cols="12" md="12")
+              v-select(v-model="form.languagesid" dense :items="languages"
+              label="Lenguajes aceptados" filled multiple chips
+              :rules="generalRules" item-text="name" item-value="_id"
+              hide-details="auto")
             v-col(cols="12" md="6")
               v-select(v-model="form.contestid" dense :items="contests"
               label="Competencia" filled :rules="generalRules"
               item-text="full_contest" item-value="_id" hide-details="auto")
             v-col(cols="12" md="6")
-              v-select(v-model="form.difficulty" label="Dificultad" dense
-              :items="difficulties" filled item-text="text" item-value="value"
+              v-select(v-model="form.difficultyid" label="Dificultad" dense
+              :items="difficulties" filled item-text="name" item-value="_id"
               hide-details="auto")
             v-col(cols="12" md="12")
               v-select(v-model="form.topicsid" dense :items="topics"
@@ -60,7 +65,8 @@ v-container(fluid)
 
 <script>
 import generalRules from '~/mixins/form-rules/general-rules'
-import { topicUrl, contestUrl, challengeUrl } from '~/mixins/routes'
+import { topicUrl, difficultyUrl, contestUrl, challengeUrl, languageUrl }
+  from '~/mixins/routes'
 
 export default {
   mixins: [generalRules],
@@ -73,6 +79,7 @@ export default {
       search: '',
       contests: [],
       topics: [],
+      difficulties: [],
       form: {
         _id: '',
         title: '',
@@ -96,22 +103,6 @@ export default {
     },
     formTitle () {
       return this.form._id ? 'Editar reto' : 'Crear reto'
-    },
-    difficulties () {
-      return [
-        {
-          text: 'Fácil',
-          value: 'EASY'
-        },
-        {
-          text: 'Intermedio',
-          value: 'INTERMEDIATE'
-        },
-        {
-          text: 'Difícil',
-          value: 'HARD'
-        }
-      ]
     }
   },
 
@@ -128,6 +119,8 @@ export default {
       } else {
         this.getContests()
         this.getTopics()
+        this.getDifficulties()
+        this.getLanguages()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     }
@@ -183,6 +176,20 @@ export default {
     async getTopics () {
       try {
         this.topics = (await this.$axios.$get(topicUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getDifficulties () {
+      try {
+        this.difficulties = (await this.$axios.$get(difficultyUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getLanguages () {
+      try {
+        this.languages = (await this.$axios.$get(languageUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }

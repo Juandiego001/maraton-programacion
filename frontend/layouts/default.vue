@@ -102,7 +102,7 @@ export default {
             this.$ability.can('read', subitem.title))
           if (option.items.length) { options.push(option) }
         }
-        this.appMenu = this.$clone(menu)
+        this.appMenu = options
       } catch (err) {
         this.showSnackbar(err)
       }

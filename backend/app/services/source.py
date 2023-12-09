@@ -62,7 +62,7 @@ def get_sources_for_languages(challengeid: str):
                 'challengeid': 1,
                 'full_source': {
                     '$concat': [
-                        '$challenge.name'
+                        '$challenge.name',
                         '$language.extension'
                     ]
                 }

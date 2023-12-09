@@ -3,7 +3,6 @@ from app.schemas.generic import DefaultAuto, ObjectId
 
 
 class SolutionIn(DefaultAuto):
-    challengeid = ObjectId()
     sourceid = ObjectId()
     file = fields.File(required=False)
     link = fields.String()
@@ -14,6 +13,7 @@ class SolutionIn(DefaultAuto):
 
 
 class SolutionOut(DefaultAuto):
+    contestid = ObjectId()
     challengeid = ObjectId()
     sourceid = ObjectId()
     full_source = fields.String()

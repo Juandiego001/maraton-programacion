@@ -279,3 +279,8 @@ def update_challenge(challengeid, params):
         raise HTTPException('El reto no ha sido actualizado')
     return updated
 
+
+def get_challenges_by_contest(contestid: str):
+    prueba = list(mongo.db.challenges.find({'contestid': ObjectId(contestid)}))
+    print('Prueba', prueba)
+    return prueba

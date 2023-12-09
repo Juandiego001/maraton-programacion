@@ -16,10 +16,20 @@ class ChallengeIn(DefaultAuto):
 
 class ChallengeOut(DefaultAuto):
     title = fields.String()
+    name = fields.String()    
+    status = fields.Boolean()
+
+
+class Challenges(Schema):
+    items = fields.List(fields.Nested(ChallengeOut))
+
+
+class ChallengeContestOut(DefaultAuto):
+    title = fields.String()
     name = fields.String()
     contestid = ObjectId()
     languagesid = fields.List(ObjectId())
-    topicsid = fields.List(ObjectId(), required=False)
+    topicsid = fields.List(ObjectId())
     difficultyid = ObjectId()
     contest = fields.Nested(ContestChallengeOut)
     topics = fields.List(fields.Nested(TopicOut))
@@ -29,5 +39,5 @@ class ChallengeOut(DefaultAuto):
     status = fields.Boolean()
 
 
-class Challenges(Schema):
-    items = fields.List(fields.Nested(ChallengeOut))
+class ChallengesContest(Schema):
+    items = fields.List(fields.Nested(ChallengeContestOut))

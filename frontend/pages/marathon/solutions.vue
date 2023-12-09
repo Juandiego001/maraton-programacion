@@ -29,9 +29,14 @@ v-container(fluid)
             v-col(class="primary--text" cols="12" md="12")
               | Información de la solución
             v-col(cols="12" md="12")
-              v-select(v-model="form.challengeid" label="Reto" filled
-              :items="challenges" item-text="full_challenge" item-value="_id"
+              v-select(v-model="contestid" label="Competencia" filled
+              :items="contests" item-text="full_contest" item-value="_id"
               hide-details="auto" :rules="generalRules")
+            v-col(cols="12" md="12")
+              v-select(v-model="challengeid" label="Reto" filled
+              :items="challenges" item-text="name" item-value="_id"
+              hide-details="auto" :rules="generalRules"
+              :disabled="!challenges.length")
             v-col(v-if="form.real_name" cols="12" md="6")
               v-text-field(v-model="form.real_name" filled
               label="Nombre del archivo" hide-details="auto" readonly)
@@ -76,7 +81,7 @@ v-container(fluid)
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
 import fileLinkRules from '../../mixins/form-rules/file-link'
-import { solutionUrl, sourceUrl, challengeUrl }
+import { solutionUrl, contestUrl, challengeUrl, sourceUrl }
   from '../../mixins/routes'
 
 export default {
@@ -89,11 +94,13 @@ export default {
       items: [],
       search: '',
       sources: [],
+      contestid: '',
+      contests: [],
+      challengeid: '',
       challenges: [],
       file: null,
       form: {
         _id: '',
-        challengeid: '',
         sourceid: '',
         link: '',
         description: '',
@@ -132,16 +139,15 @@ export default {
         this.form._id = ''
         this.$refs.form.reset()
       } else {
-        this.getChallenges()
+        this.getContests()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     },
-    'form.challengeid' (value) {
-      if (value) {
-        // eslint-disable-next-line no-console
-        console.log('LLEGO AQUI: ', value)
-        this.getSources(value)
-      }
+    contestid (value) {
+      if (value) { this.getChallenges(value) }
+    },
+    challengeid (value) {
+      if (value) { this.getSources(value) }
     }
   },
 
@@ -195,19 +201,27 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getSources (challengeid) {
+    async getContests () {
       try {
-        this.sources = (await this.$axios.$get(
-        `${sourceUrl}languages/${challengeid}`)).items
-        // eslint-disable-next-line no-console
-        console.log('LOS SOURCES: ', this.sources)
+        this.contests = (await this.$axios.$get(contestUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }
     },
     async getChallenges () {
       try {
-        this.challenges = (await this.$axios.$get(challengeUrl)).items
+        this.challenges = (await this.$axios.$get(
+          `${challengeUrl}contest/${this.contestid}`)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getSources (challengeid) {
+      try {
+        this.sources = (await this.$axios.$get(
+          `${sourceUrl}languages/${challengeid}`)).items
+        // eslint-disable-next-line no-console
+        console.log('Sources: ', this.sources)
       } catch (err) {
         this.showSnackbar(err)
       }

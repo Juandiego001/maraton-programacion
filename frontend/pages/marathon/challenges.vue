@@ -77,6 +77,7 @@ export default {
       total: -1,
       items: [],
       search: '',
+      languages: [],
       contests: [],
       topics: [],
       difficulties: [],

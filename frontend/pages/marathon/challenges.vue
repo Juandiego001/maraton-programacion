@@ -79,6 +79,7 @@ export default {
       search: '',
       contests: [],
       topics: [],
+      languages: [],
       difficulties: [],
       form: {
         _id: '',

@@ -49,8 +49,6 @@ def get_sources():
 @bp.output(Sources)
 def get_sources_for_languages(challengeid):
     try:
-        test = source.get_sources_for_languages(challengeid)
-        print(test)
-        return Sources().dump({'items': test})
+        return Sources().dump({'items': source.get_sources_for_languages(challengeid)})
     except Exception as ex:
         abort(500, str(ex))

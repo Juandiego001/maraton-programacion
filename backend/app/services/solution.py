@@ -20,8 +20,6 @@ def put_file(file: FileStorage, solutionid: str):
 
 
 def create_solution(params: dict):
-    if not verify_if_language_exists({'_id': ObjectId(params['languageid'])}):
-        raise HTTPException('El lenguaje asociado a la solución no existe')
     solutionid = ObjectId()
     params['_id'] = solutionid
     params['real_name'] = put_file(params.pop('file'), solutionid)\
@@ -42,17 +40,6 @@ def verify_exists(params: list):
 def get_solutions():
     return list(mongo.db.solutions.aggregate([
         {
-            '$lookup': {
-                'from': 'languages',
-                'localField': 'languageid',
-                'foreignField': '_id',
-                'as': 'language'
-            }
-        }, {
-            '$unwind': {
-                'path': '$language'
-            }
-        }, {
             '$lookup': {
                 'from': 'challenges',
                 'localField': 'challengeid',
@@ -118,17 +105,16 @@ def get_solutions():
                         }
                     }
                 ],
-                'as': 'sources'
+                'as': 'source'
             }
         }, {
             '$unwind': {
-                'path': '$sources'
+                'path': '$source'
             }
         }, {
             '$project': {
                 'real_name': 1,
                 'link': 1,
-                'language': '$language.name',
                 'full_source': {
                     '$concat': [
                         '$source.challenge.name',

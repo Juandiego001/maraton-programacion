@@ -28,7 +28,7 @@ class SolutionOut(DefaultAuto):
 
 class SolutionsOut(DefaultAuto):
     full_challenge = fields.String()
-    language = fields.String()
+    full_source = fields.String()
     username = fields.String()
     # file_url = fields.String()
     link = fields.String()

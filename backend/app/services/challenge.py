@@ -155,7 +155,7 @@ def get_challenge_by_id(challengeid: str):
             }
         }, {
             '$sort': {
-                '$contest.made_at': -1
+                'contest.made_at': -1
             }
         }]).try_next()
     if not challenge:

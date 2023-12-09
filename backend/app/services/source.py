@@ -21,8 +21,8 @@ def get_source_by_id(sourceid: str):
 def get_sources():
     return list(mongo.db.sources.find({}))
 
+
 def get_sources_for_languages(challengeid: str):
-    print('EL CHALLENGEID: ', challengeid)
     return list(mongo.db.sources.aggregate([
         {
             '$lookup': {
@@ -62,7 +62,7 @@ def get_sources_for_languages(challengeid: str):
                 'challengeid': 1,
                 'full_source': {
                     '$concat': [
-                        '$challenge.name'
+                        '$challenge.name',
                         '$language.extension'
                     ]
                 }

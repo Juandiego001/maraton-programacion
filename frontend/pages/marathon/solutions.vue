@@ -131,17 +131,22 @@ export default {
       if (!value) {
         this.form._id = ''
         this.$refs.form.reset()
+        this.form = {
+          _id: '',
+          challengeid: '',
+          sourceid: '',
+          link: '',
+          description: '',
+          judgment_status: '',
+          error: ''
+        }
       } else {
         this.getChallenges()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     },
     'form.challengeid' (value) {
-      if (value) {
-        // eslint-disable-next-line no-console
-        console.log('LLEGO AQUI: ', value)
-        this.getSources(value)
-      }
+      if (value) { this.getSources(value) }
     }
   },
 
@@ -155,6 +160,7 @@ export default {
       try {
         const data = await this.$axios.$get(solutionUrl)
         this.items = data.items
+        console.log('SOLUCIONES: ', data)
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -199,8 +205,6 @@ export default {
       try {
         this.sources = (await this.$axios.$get(
         `${sourceUrl}languages/${challengeid}`)).items
-        // eslint-disable-next-line no-console
-        console.log('LOS SOURCES: ', this.sources)
       } catch (err) {
         this.showSnackbar(err)
       }

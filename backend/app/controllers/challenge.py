@@ -1,8 +1,7 @@
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from app.schemas.challenge import ChallengeIn, ChallengeOut, Challenges,\
-    ChallengeContestOut, ChallengesContest
+from app.schemas.challenge import ChallengeIn, ChallengeOut, Challenges
 from app.schemas.generic import Message
 from app.services import challenge
 from app.utils import success_message
@@ -27,7 +26,7 @@ def create_challenge(data):
 
 
 @bp.get('/<string:challengeid>')
-@bp.output(ChallengeContestOut)
+@bp.output(ChallengeOut)
 def get_challenge_detail(challengeid):
     try:
         return challenge.get_challenge_by_id(challengeid)
@@ -38,7 +37,7 @@ def get_challenge_detail(challengeid):
 
 
 @bp.get('/')
-@bp.output(ChallengesContest)
+@bp.output(Challenges)
 def get_challenges():
     try:
         return Challenges().dump({'items': challenge.get_challenges()})
@@ -65,10 +64,8 @@ def update_challenge(challengeid, data):
 @bp.output(Challenges)
 def get_challenges_by_contest(contestid):
     try:
-        test = challenge.get_challenges_by_contest(contestid)
-        print('Test: ', test)
-        return Challenges().dump(
-            {'items': test})
+        return Challenges().dump({'items':
+            challenge.get_challenges_by_contest(contestid)})
     except HTTPException as ex:
         abort(400, ex.description)
     except Exception as ex:

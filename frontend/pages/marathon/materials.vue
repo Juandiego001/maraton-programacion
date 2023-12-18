@@ -2,6 +2,8 @@
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
   :options.sync="options" :search="search")
+    template(#item.file_link="{ item }")
+      .text-truncate {{ item.real_name ? item.real_name : item.link }}
     template(#item.options="{ item }")
       v-btn(color="success" depressed icon @click="getMaterial(item)")
         v-icon mdi-pencil-outline
@@ -43,6 +45,9 @@ v-container(fluid)
             v-col(cols="12" md="12")
               text-field(v-model="form.link" label="Enlace"
               :rules="fileLinkRules")
+            v-col(cols="12" md="12")
+              v-textarea(v-model="form.description" filled depressed
+              label="Descripción" hide-details="auto")
 
           v-row(v-if="form._id" dense)
             v-col(cols="12")
@@ -94,7 +99,8 @@ export default {
         real_name: '',
         file_url: '',
         link: '',
-        username: ''
+        username: '',
+        description: ''
       }
     }
   },
@@ -106,7 +112,7 @@ export default {
   computed: {
     headers () {
       return [
-        { text: 'Archivo', value: 'real_name' },
+        { text: 'Archivo/enlace', value: 'file_link' },
         { text: 'Estado', value: 'status' },
         { text: 'Opciones', align: 'center', value: 'options' }
       ]

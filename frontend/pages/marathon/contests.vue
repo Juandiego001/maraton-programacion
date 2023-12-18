@@ -1,7 +1,6 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :search="search"
   :options.sync="options")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
@@ -9,7 +8,14 @@ v-container(fluid)
       v-btn(class="mr-2" color="success" depressed icon
       @click="getContest(item)")
         v-icon mdi-pencil-outline
+      v-btn(v-if="item.real_name" color="primary"
+      :href="`${downloadUrl}/${item.file_url}`" target="_blank" icon)
+        v-icon mdi-download-outline
+      v-btn(v-if="item.link" color="primary" :href="item.link" target="_blank"
+      icon)
+        v-icon mdi-link
 
+  //- Diálogo de creación/edición
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
     v-form(ref="form" @submit.prevent="saveTopic")
@@ -46,7 +52,7 @@ v-container(fluid)
               v-file-input(v-model="file" label="Archivo"
               hide-details="auto")
             v-col(cols="12" md="12")
-              text-field(v-model="form.link_url" label="Enlace")
+              text-field(v-model="form.link" label="Enlace")
             v-col(cols="12" md="6")
               v-checkbox(v-model="form.isTraining" label="Capacitación"
               hide-details="auto")
@@ -64,7 +70,51 @@ v-container(fluid)
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
 
-  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
+  //- Diálogo de búsqueda
+  v-dialog(v-model="dialogSearch" max-width="600px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
+    v-form(@submit.prevent="doSearch")
+      v-card(flat :tile="$vuetify.breakpoint.smAndDown")
+        v-card-title.primary.white--text Búsqueda de competencias
+          v-spacer
+          v-btn.primary(fab small depressed @click="dialogSearch=false")
+            v-icon mdi-close
+        v-card-text.mt-3
+          v-row(dense)
+            v-col(cols="12" md="6")
+              v-text-field(v-model="search.platform" label="Plataforma" filled
+              hide-details="auto" dense)
+            v-col(cols="12" md="6")
+              v-text-field(v-model="search.name" label="Nombre" filled
+              hide-details="auto" dense)
+            v-col(cols="12" md="6")
+              v-menu(ref="searchMenuInitial" v-model="searchMenuInitial"
+              offset-y :close-on-content-click="false"
+              transition="scale-transition" min-width="auto")
+                template(v-slot:activator="{ on, attrs }")
+                  v-text-field(v-model="search.initial_date" readonly
+                  v-bind="attrs" label="Fecha de inicial" v-on="on"
+                  hide-details="auto" prepend-icon="mdi-calendar")
+                v-date-picker(v-model="search.initial_date"
+                :active-picker.sync="activeSearchInitialPicker"
+                @change="saveSearchInitialDate")
+            v-col(cols="12" md="6")
+              v-menu(ref="searchMenuEnd" v-model="searchMenuEnd" offset-y
+              :close-on-content-click="false" transition="scale-transition"
+              min-width="auto")
+                template(v-slot:activator="{ on, attrs }")
+                  v-text-field(v-model="search.end_date" readonly v-bind="attrs"
+                  label="Fecha de final" v-on="on" hide-details="auto"
+                  prepend-icon="mdi-calendar")
+                v-date-picker(v-model="search.end_date"
+                :active-picker.sync="activeSearchEndPicker"
+                @change="saveSearchEndDate")
+            v-col(cols="12" md="6")
+              v-checkbox(v-model="search.isTraining" label="Capacitación"
+              hide-details="auto")
+        v-card-actions
+          v-spacer
+          v-btn(color="primary" depressed type="submit") Buscar
 </template>
 
 <script>
@@ -79,16 +129,26 @@ export default {
       options: {},
       total: -1,
       items: [],
-      search: '',
       activePicker: null,
+      activeSearchInitialPicker: null,
+      activeSearchEndPicker: null,
       menu: false,
+      searchMenuInitial: false,
+      searchMenuEnd: false,
       form: {
         _id: '',
         platform: '',
         made_at: '',
         name: '',
         file_url: '',
-        link_url: '',
+        link: '',
+        isTraining: false
+      },
+      search: {
+        platform: '',
+        initial_date: '',
+        end_date: '',
+        name: '',
         isTraining: false
       },
       file: null
@@ -107,6 +167,9 @@ export default {
         { text: 'Estado', align: 'center', value: 'status' },
         { text: 'Opciones', align: 'center', value: 'options' }
       ]
+    },
+    downloadUrl () {
+      return `${contestUrl}download`
     }
   },
 
@@ -122,6 +185,12 @@ export default {
     },
     menu (val) {
       val && setTimeout(() => (this.activePicker = 'YEAR'))
+    },
+    searchMenuInitial (val) {
+      val && setTimeout(() => (this.activeSearchInitialPicker = 'YEAR'))
+    },
+    searchMenuEnd (val) {
+      val && setTimeout(() => (this.activeSearchEndPicker = 'YEAR'))
     }
   },
 
@@ -131,10 +200,17 @@ export default {
   },
 
   methods: {
+    getFormData () {
+      const formData = new FormData()
+      for (const key of Object.keys(this.form)) {
+        if (this.form[key] != null) { formData.append(key, this.form[key]) }
+      }
+      if (this.file) { formData.append('file', this.file) }
+      return formData
+    },
     async getData () {
       try {
-        const data = await this.$axios.$get(contestUrl)
-        this.items = data.items
+        this.items = (await this.$axios.$get(contestUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -145,9 +221,10 @@ export default {
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
-              `${contestUrl}${this.form._id}`, this.form))
+              `${contestUrl}${this.form._id}`, this.getFormData()))
         } else {
-          ({ message } = await this.$axios.$post(contestUrl, this.form))
+          ({ message } = await this.$axios.$post(contestUrl,
+            this.getFormData()))
         }
 
         this.getData()
@@ -168,9 +245,24 @@ export default {
     saveDate (date) {
       this.$refs.menu.save(date)
     },
-    doSearch (value) {
-      this.search = value
-      this.dialogSearch = false
+    saveSearchInitialDate (date) {
+      this.$refs.searchMenuInitial.save(date)
+    },
+    saveSearchEndDate (date) {
+      this.$refs.searchMenuEnd.save(date)
+    },
+    async doSearch () {
+      try {
+        let query = ''
+        for (const key of Object.keys(this.search)) {
+          if (this.search[key]) { query += `${key}=${this.search[key]}&` }
+        }
+        this.items = (await this.$axios.$get(
+          `${contestUrl}?${query}`)).items
+        this.dialogSearch = false
+      } catch (err) {
+        this.showSnackbar(err)
+      }
     }
   }
 }

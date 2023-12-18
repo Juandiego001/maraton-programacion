@@ -1,12 +1,12 @@
 from apiflask import Schema, fields
-from app.schemas.generic import DefaultAuto, ObjectId
+from app.schemas.generic import DefaultAuto, ObjectId, DateField
 
 
 class ContestIn(DefaultAuto):
     platform = fields.String()
-    made_at = fields.String()
+    made_at = DateField()
     name = fields.String(required=False)
-    file_url = fields.String(required=False)
+    file = fields.File(required=False)
     link = fields.String(required=False)
     isTraining = fields.Boolean(required=False, load_default=False)
     status = fields.Boolean(required=False, load_default=True)
@@ -14,9 +14,10 @@ class ContestIn(DefaultAuto):
 
 class ContestOut(DefaultAuto):
     platform = fields.String()
-    made_at = fields.String()
+    made_at = DateField()
     name = fields.String()
     file_url = fields.String()
+    real_name = fields.String()
     link = fields.String()
     isTraining = fields.Boolean()
     status = fields.String()
@@ -27,6 +28,14 @@ class ContestOut(DefaultAuto):
 class ContestChallengeOut(Schema):
     _id = ObjectId()
     full_contest = fields.String()
+
+
+class ContestsQuery(Schema):
+    platform = fields.String()
+    name = fields.String()
+    isTraining = fields.Boolean()
+    initial_date = DateField()
+    end_date = DateField()
 
 
 class Contests(Schema):

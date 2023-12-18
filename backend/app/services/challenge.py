@@ -155,7 +155,7 @@ def get_challenge_by_id(challengeid: str):
             }
         }, {
             '$sort': {
-                '$contest.made_at': -1
+                'contest.made_at': -1
             }
         }]).try_next()
     if not challenge:
@@ -215,13 +215,11 @@ def get_challenges():
                 'difficulty': 1,
                 'contestid': '$contest._id',
                 'topicsid': '$topics_challenge.topics._id',
-                'contest': {
-                    '_id': '$contest._id',
-                    'full_contest': {
-                        '$concat': [
-                            '$contest.platform', ' ', '$contest.made_at']
-                    }
+                'full_contest': {
+                    '$concat': [ '$contest.platform', ' ', '$contest.made_at']
                 },
+                'contest_url': '$contest.file_url',
+                'contest_link': '$contest.link',
                 'topics': '$topics_challenge.topics'
             }
         }]))
@@ -281,6 +279,4 @@ def update_challenge(challengeid, params):
 
 
 def get_challenges_by_contest(contestid: str):
-    prueba = list(mongo.db.challenges.find({'contestid': ObjectId(contestid)}))
-    print('Prueba', prueba)
-    return prueba
+    return list(mongo.db.challenges.find({'contestid': ObjectId(contestid)}))

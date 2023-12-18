@@ -29,11 +29,11 @@ v-container(fluid)
             v-col(class="primary--text" cols="12" md="12")
               | Información de la solución
             v-col(cols="12" md="12")
-              v-select(v-model="contestid" label="Competencia" filled
+              v-select(v-model="form.contestid" label="Competencia" filled
               :items="contests" item-text="full_contest" item-value="_id"
               hide-details="auto" :rules="generalRules")
             v-col(cols="12" md="12")
-              v-select(v-model="challengeid" label="Reto" filled
+              v-select(v-model="form.challengeid" label="Reto" filled
               :items="challenges" item-text="name" item-value="_id"
               hide-details="auto" :rules="generalRules"
               :disabled="!challenges.length")
@@ -94,13 +94,13 @@ export default {
       items: [],
       search: '',
       sources: [],
-      contestid: '',
       contests: [],
-      challengeid: '',
       challenges: [],
       file: null,
       form: {
         _id: '',
+        contestid: '',
+        challengeid: '',
         sourceid: '',
         link: '',
         description: '',
@@ -117,9 +117,9 @@ export default {
   computed: {
     headers () {
       return [
-        { text: 'Archivo', value: 'real_name' },
-        { text: 'Archivo fuente asociado', value: 'full_source' },
+        { text: 'Competencia', value: 'full_contest' },
         { text: 'Reto', value: 'full_challenge' },
+        { text: 'Archivo fuente asociado', value: 'full_source' },
         { text: 'Hecho por', value: 'username' },
         { text: 'Opciones', value: 'options' }
       ]
@@ -138,15 +138,27 @@ export default {
       if (!value) {
         this.form._id = ''
         this.$refs.form.reset()
+        this.form = {
+          _id: '',
+          challengeid: '',
+          sourceid: '',
+          link: '',
+          description: '',
+          judgment_status: '',
+          error: ''
+        }
       } else {
         this.getContests()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     },
-    contestid (value) {
-      if (value) { this.getChallenges(value) }
+    'form.contestid' (value) {
+      if (value) {
+        this.getChallenges(value)
+        this.sources = []
+      }
     },
-    challengeid (value) {
+    'form.challengeid' (value) {
       if (value) { this.getSources(value) }
     }
   },
@@ -159,8 +171,7 @@ export default {
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(solutionUrl)
-        this.items = data.items
+        this.items = (await this.$axios.$get(solutionUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -211,7 +222,7 @@ export default {
     async getChallenges () {
       try {
         this.challenges = (await this.$axios.$get(
-          `${challengeUrl}contest/${this.contestid}`)).items
+          `${challengeUrl}contest/${this.form.contestid}`)).items
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -220,8 +231,6 @@ export default {
       try {
         this.sources = (await this.$axios.$get(
           `${sourceUrl}languages/${challengeid}`)).items
-        // eslint-disable-next-line no-console
-        console.log('Sources: ', this.sources)
       } catch (err) {
         this.showSnackbar(err)
       }

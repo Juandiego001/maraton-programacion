@@ -18,26 +18,15 @@ class ChallengeOut(DefaultAuto):
     title = fields.String()
     name = fields.String()    
     status = fields.Boolean()
+    contestid = ObjectId()
+    full_contest = fields.String()
+    contest_url = fields.String()
+    contest_link = fields.String()
+    languagesid = fields.List(ObjectId())
+    topicsid = fields.List(ObjectId())
+    difficultyid = ObjectId()
+    status = fields.Boolean()
 
 
 class Challenges(Schema):
     items = fields.List(fields.Nested(ChallengeOut))
-
-
-class ChallengeContestOut(DefaultAuto):
-    title = fields.String()
-    name = fields.String()
-    contestid = ObjectId()
-    languagesid = fields.List(ObjectId())
-    topicsid = fields.List(ObjectId())
-    difficultyid = ObjectId()
-    contest = fields.Nested(ContestChallengeOut)
-    topics = fields.List(fields.Nested(TopicOut))
-    full_challenge = fields.Function(
-        lambda challenge: f'{challenge["title"]} - \
-            {challenge["contest"]["full_contest"]}')
-    status = fields.Boolean()
-
-
-class ChallengesContest(Schema):
-    items = fields.List(fields.Nested(ChallengeContestOut))

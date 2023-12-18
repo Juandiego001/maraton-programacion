@@ -20,8 +20,6 @@ def put_file(file: FileStorage, solutionid: str):
 
 
 def create_solution(params: dict):
-    if not verify_if_language_exists({'_id': ObjectId(params['languageid'])}):
-        raise HTTPException('El lenguaje asociado a la solución no existe')
     solutionid = ObjectId()
     params['_id'] = solutionid
     params['real_name'] = put_file(params.pop('file'), solutionid)\
@@ -39,45 +37,9 @@ def verify_exists(params: list):
     return mongo.db.solutions.find_one({'$or': params})
 
 
-def get_solutions():
-    return list(mongo.db.solutions.aggregate([
+def get_solution(solutionid: str):
+    return mongo.db.solutions.aggregate([
         {
-            '$lookup': {
-                'from': 'languages',
-                'localField': 'languageid',
-                'foreignField': '_id',
-                'as': 'language'
-            }
-        }, {
-            '$unwind': {
-                'path': '$language'
-            }
-        }, {
-            '$lookup': {
-                'from': 'challenges',
-                'localField': 'challengeid',
-                'foreignField': '_id',
-                'pipeline': [
-                    {
-                        '$lookup': {
-                            'from': 'contests',
-                            'localField': 'contestid',
-                            'foreignField': '_id',
-                            'as': 'contest'
-                        }
-                    }, {
-                        '$unwind': {
-                            'path': '$contest'
-                        }
-                    }
-                ],
-                'as': 'challenge'
-            }
-        }, {
-            '$unwind': {
-                'path': '$challenge'
-            }
-        }, {
             '$lookup': {
                 'from': 'users',
                 'localField': 'userid',
@@ -99,6 +61,20 @@ def get_solutions():
                             'from': 'challenges',
                             'localField': 'challengeid',
                             'foreignField': '_id',
+                            'pipeline': [
+                                {
+                                    '$lookup': {
+                                        'from': 'contests',
+                                        'localField': 'contestid',
+                                        'foreignField': '_id',
+                                        'as': 'contest'
+                                    }
+                                }, {
+                                    '$unwind': {
+                                        'path': '$contest'
+                                    }
+                                }
+                            ],
                             'as': 'challenge'
                         }
                     }, {
@@ -118,32 +94,134 @@ def get_solutions():
                         }
                     }
                 ],
-                'as': 'sources'
+                'as': 'source'
             }
         }, {
             '$unwind': {
-                'path': '$sources'
+                'path': '$source'
+            }
+        }, {
+            '$match': {
+                '$expr': {
+                    '$eq': [
+                        '$_id',
+                        ObjectId(solutionid)
+                    ]
+                }
             }
         }, {
             '$project': {
                 'real_name': 1,
                 'link': 1,
-                'language': '$language.name',
+                'sourceid': 1,
                 'full_source': {
                     '$concat': [
                         '$source.challenge.name',
                         '$source.language.extension'
                     ]
                 },
-                'full_challenge': {
+                'contestid': '$source.challenge.contest._id',
+                'full_contest': {
                     '$concat': [
-                        '$challenge.title',
+                        '$source.challenge.contest.platform',
                         ' - ',
-                        '$challenge.contest.platform',
-                        ' ',
-                        '$challenge.contest.made_at'
+                        '$source.challenge.contest.made_at'
                     ]
                 },
+                'challengeid': '$source.challenge._id',
+                'full_challenge': '$source.challenge.name',
+                'username': '$user.username',
+                'judgment_status': 1,
+                'error': 1,
+                'description': 1,
+                'status': 1
+            }
+        }
+    ]).try_next()
+
+
+def get_solutions():
+    return list(mongo.db.solutions.aggregate([
+        {
+            '$lookup': {
+                'from': 'users',
+                'localField': 'userid',
+                'foreignField': '_id',
+                'as': 'user'
+            }
+        }, {
+            '$unwind': {
+                'path': '$user'
+            }
+        }, {
+            '$lookup': {
+                'from': 'sources',
+                'localField': 'sourceid',
+                'foreignField': '_id',
+                'pipeline': [
+                    {
+                        '$lookup': {
+                            'from': 'challenges',
+                            'localField': 'challengeid',
+                            'foreignField': '_id',
+                            'pipeline': [
+                                {
+                                    '$lookup': {
+                                        'from': 'contests',
+                                        'localField': 'contestid',
+                                        'foreignField': '_id',
+                                        'as': 'contest'
+                                    }
+                                }, {
+                                    '$unwind': {
+                                        'path': '$contest'
+                                    }
+                                }
+                            ],
+                            'as': 'challenge'
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$challenge'
+                        }
+                    }, {
+                        '$lookup': {
+                            'from': 'languages',
+                            'localField': 'languageid',
+                            'foreignField': '_id',
+                            'as': 'language'
+                        }
+                    }, {
+                        '$unwind': {
+                            'path': '$language'
+                        }
+                    }
+                ],
+                'as': 'source'
+            }
+        }, {
+            '$unwind': {
+                'path': '$source'
+            }
+        }, {
+            '$project': {
+                'file_url': 1,
+                'real_name': 1,
+                'link': 1,
+                'full_source': {
+                    '$concat': [
+                        '$source.challenge.name',
+                        '$source.language.extension'
+                    ]
+                },
+                'full_contest': {
+                    '$concat': [
+                        '$source.challenge.contest.platform',
+                        ' - ',
+                        '$source.challenge.contest.made_at'
+                    ]
+                },
+                'full_challenge': '$source.challenge.name',
                 'username': '$user.username'
             }
         }
@@ -154,7 +232,7 @@ def get_solution_by_id(solutionid: str):
     solution = verify_exists([{'_id': ObjectId(solutionid)}])
     if not solution:
         raise HTTPException('Solución no encontrada')
-    return solution
+    return get_solution(solutionid)
 
 
 def update_solution(solutionid: str, params: dict):

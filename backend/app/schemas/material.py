@@ -5,11 +5,13 @@ from app.schemas.generic import DefaultAuto, ObjectId
 class MaterialIn(DefaultAuto):
     file = fields.File(required=False)
     link = fields.String()
+    description = fields.String()
     status = fields.Boolean(required=False, load_default=True)
 
 
 class MaterialOut(DefaultAuto):
     username = fields.String()
+    description = fields.String()
     file_url = fields.String()
     link = fields.String()
     real_name = fields.String()

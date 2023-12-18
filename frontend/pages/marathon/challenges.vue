@@ -8,6 +8,12 @@ v-container(fluid)
       v-btn(class="mr-2" color="success" depressed icon
       @click="getChallenge(item)")
         v-icon mdi-pencil-outline
+      v-btn(v-if="item.contest_url" color="primary"
+      :href="`${contestDownloadUrl}/${item.contest_url}`" target="_blank" icon)
+        v-icon mdi-file-download
+      v-btn(v-if="item.contest_link" color="primary" :href="item.contest_link"
+      target="_blank" icon)
+        v-icon mdi-link
 
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
@@ -97,13 +103,16 @@ export default {
     headers () {
       return [
         { text: 'Reto', align: 'center', width: 6, value: 'title' },
-        { text: 'Competencia', align: 'center', width: 12, value: 'contest.full_contest' },
+        { text: 'Competencia', align: 'center', width: 12, value: 'full_contest' },
         { text: 'Estado', align: 'center', width: 6, value: 'status' },
         { text: 'Opciones', align: 'center', width: 6, value: 'options' }
       ]
     },
     formTitle () {
       return this.form._id ? 'Editar reto' : 'Crear reto'
+    },
+    contestDownloadUrl () {
+      return `${contestUrl}download`
     }
   },
 
@@ -135,8 +144,7 @@ export default {
   methods: {
     async getData () {
       try {
-        const data = await this.$axios.$get(challengeUrl)
-        this.items = data.items
+        this.items = (await this.$axios.$get(challengeUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }

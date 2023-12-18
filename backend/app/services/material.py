@@ -58,6 +58,7 @@ def get_materials():
                 'real_name': 1,
                 'file_url': 1,
                 'link': 1,
+                'description': 1,
                 'status': 1
             }
         }
@@ -91,6 +92,7 @@ def get_material(materialid: str):
                 'real_name': 1,
                 'file_url': 1,
                 'link': 1,
+                'description': 1,
                 'status': 1
             }
         }

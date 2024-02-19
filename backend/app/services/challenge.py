@@ -148,7 +148,12 @@ def get_challenge_by_id(challengeid: str):
                     '_id': '$contest._id',
                     'full_contest': {
                         '$concat': [
-                            '$contest.platform', ' ', '$contest.made_at']
+                            '$contest.platform', ' ', {
+                                '$dateToString': {
+                                    'date': '$contest.made_at',
+                                    'format': '%Y-%m-%d'
+                                    }
+                                }]
                     }
                 },
                 'topics': '$topics_challenge.topics'
@@ -162,7 +167,22 @@ def get_challenge_by_id(challengeid: str):
         raise HTTPException('El reto no fue encontrado')
     return challenge
 
-def get_challenges():
+def get_challenges(query: dict):
+    filter = {}
+    if 'title' in query:
+        filter['title'] = {
+            '$regex':  f'{query["title"]}',
+            '$options': 'i'
+        }
+    if 'contestid' in query:
+        filter['contest._id'] = query['contestid']
+    if 'difficultyid' in query:
+        filter['difficulty._id'] = query['difficultyid']
+    if 'topicsid' in query:
+        filter['topics_challenge.topics._id'] = {
+            '$in': [ObjectId(id) for id in query['topicsid'].split(',')]
+        }
+
     return list(mongo.db.challenges.aggregate([
         {
             '$lookup': {
@@ -204,6 +224,15 @@ def get_challenges():
                 'as': 'topics_challenge'
             }
         }, {
+            '$lookup': {
+                'from': 'difficulties',
+                'localField': 'difficultyid',
+                'foreignField': '_id',
+                'as': 'difficulty'
+            }
+        }, {
+            '$match': filter
+        }, {
             '$project': {
                 '_id': 1,
                 'title': 1,
@@ -216,7 +245,12 @@ def get_challenges():
                 'contestid': '$contest._id',
                 'topicsid': '$topics_challenge.topics._id',
                 'full_contest': {
-                    '$concat': [ '$contest.platform', ' ', '$contest.made_at']
+                    '$concat': [ '$contest.platform', ' ', {
+                        '$dateToString': {
+                            'date': '$contest.made_at',
+                            'format': '%Y-%m-%d'
+                            }
+                        }]
                 },
                 'contest_url': '$contest.file_url',
                 'contest_link': '$contest.link',

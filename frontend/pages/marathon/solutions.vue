@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options" :search="search")
+  :options.sync="options")
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
       @click="getSolution(item)")
@@ -75,13 +75,39 @@ v-container(fluid)
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
 
-  dialog-search(v-model="dialogSearch" :doSearch="doSearch")
+  //- Diálogo de búsqueda
+  v-dialog(v-model="dialogSearch" max-width="600px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
+    v-form(@submit.prevent="doSearch")
+      v-card(flat :tile="$vuetify.breakpoint.smAndDown")
+        v-card-title.primary.white--text Búsqueda de soluciones
+          v-spacer
+          v-btn.primary(fab small depressed @click="dialogSearch=false")
+            v-icon mdi-close
+        v-card-text.mt-3
+          v-row(dense)
+            v-col(cols="12" md="12")
+              v-select(v-model="search.contestid" label="Competencia" filled
+              :items="contests" item-text="full_contest" item-value="_id"
+              hide-details="auto" clearable)
+            v-col(cols="12" md="12")
+              v-select(v-model="search.challengeid" label="Reto" filled
+              :items="challenges" item-text="title" item-value="_id"
+              hide-details="auto" clearable)
+            v-col(cols="12" md="12")
+              v-select(v-model="search.languageid" label="Lenguaje" filled
+              :items="languages" item-text="name" item-value="_id"
+              hide-details="auto" clearable)
+        v-card-actions
+          v-spacer
+          v-btn(depressed @click="clearSearch") Limpiar valores
+          v-btn(color="primary" depressed type="submit") Buscar
 </template>
 
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
 import fileLinkRules from '../../mixins/form-rules/file-link'
-import { solutionUrl, contestUrl, challengeUrl, sourceUrl }
+import { solutionUrl, contestUrl, challengeUrl, sourceUrl, languageUrl }
   from '../../mixins/routes'
 
 export default {
@@ -92,10 +118,10 @@ export default {
       options: {},
       total: -1,
       items: [],
-      search: '',
       sources: [],
       contests: [],
       challenges: [],
+      languages: [],
       file: null,
       form: {
         _id: '',
@@ -106,6 +132,11 @@ export default {
         description: '',
         judgment_status: '',
         error: ''
+      },
+      search: {
+        contestid: '',
+        challengeid: '',
+        languageid: ''
       }
     }
   },
@@ -152,6 +183,13 @@ export default {
         this.$refs.form && this.$refs.form.resetValidation()
       }
     },
+    dialogSearch (value) {
+      if (value) {
+        this.getContests()
+        this.getChallenges()
+        this.getLanguages()
+      }
+    },
     'form.contestid' (value) {
       if (value) {
         this.getChallenges(value)
@@ -160,6 +198,12 @@ export default {
     },
     'form.challengeid' (value) {
       if (value) { this.getSources(value) }
+    },
+    'search.contestid' (value) {
+      if (value) {
+        this.getChallenges(value)
+        this.sources = []
+      }
     }
   },
 
@@ -219,10 +263,14 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async getChallenges () {
+    async getChallenges (value) {
       try {
-        this.challenges = (await this.$axios.$get(
-          `${challengeUrl}contest/${this.form.contestid}`)).items
+        if (value) {
+          this.challenges = (await this.$axios.$get(
+            `${challengeUrl}contest/${value}`)).items
+        } else {
+          this.challenges = (await this.$axios.$get(challengeUrl)).items
+        }
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -235,9 +283,31 @@ export default {
         this.showSnackbar(err)
       }
     },
-    doSearch (value) {
-      this.search = value
-      this.dialogSearch = false
+    async getLanguages () {
+      try {
+        this.languages = (await this.$axios.$get(languageUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async doSearch () {
+      try {
+        let query = ''
+        for (const key of Object.keys(this.search)) {
+          if (this.search[key]) {
+            query += `${key}=${this.search[key]}&`
+          }
+        }
+        this.items = (await this.$axios.$get(
+          `${solutionUrl}?${query}`)).items
+        this.dialogSearch = false
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    clearSearch () {
+      this.search = {}
+      this.doSearch()
     }
   }
 }

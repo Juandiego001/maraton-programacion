@@ -125,7 +125,12 @@ def get_solution(solutionid: str):
                     '$concat': [
                         '$source.challenge.contest.platform',
                         ' - ',
-                        '$source.challenge.contest.made_at'
+                        {
+                            '$dateToString': {
+                                'date': '$source.challenge.contest.made_at',
+                                'format': '%Y-%m-%d'
+                            }
+                        }
                     ]
                 },
                 'challengeid': '$source.challenge._id',
@@ -140,7 +145,14 @@ def get_solution(solutionid: str):
     ]).try_next()
 
 
-def get_solutions():
+def get_solutions(query: dict):
+    filter = {}
+    if 'contestid' in query:
+        filter['source.challenge.contest._id'] = ObjectId(query['contestid'])
+    if 'challengeid' in query:
+        filter['source.challenge._id'] = ObjectId(query['challengeid'])
+    if 'languageid' in query:
+        filter['source.language._id'] = ObjectId(query['languageid'])
     return list(mongo.db.solutions.aggregate([
         {
             '$lookup': {
@@ -204,6 +216,8 @@ def get_solutions():
                 'path': '$source'
             }
         }, {
+            '$match': filter
+        }, {
             '$project': {
                 'file_url': 1,
                 'real_name': 1,
@@ -218,7 +232,12 @@ def get_solutions():
                     '$concat': [
                         '$source.challenge.contest.platform',
                         ' - ',
-                        '$source.challenge.contest.made_at'
+                        {
+                            '$dateToString': {
+                                'date': '$source.challenge.contest.made_at',
+                                'format': '%Y-%m-%d'
+                                }
+                            }
                     ]
                 },
                 'full_challenge': '$source.challenge.name',

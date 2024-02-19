@@ -36,5 +36,11 @@ class SolutionsOut(DefaultAuto):
     status = fields.Boolean()
 
 
+class SolutionsQuery(Schema):
+    contestid = ObjectId()
+    challengeid = ObjectId()
+    languageid = ObjectId()
+
+
 class Solutions(Schema):
     items = fields.List(fields.Nested(SolutionsOut))

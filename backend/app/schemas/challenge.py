@@ -27,6 +27,11 @@ class ChallengeOut(DefaultAuto):
     difficultyid = ObjectId()
     status = fields.Boolean()
 
+class ChallengesQuery(Schema):
+    title = fields.String()
+    contestid = ObjectId()
+    topicsid = fields.String()
+    difficultyid = ObjectId()
 
 class Challenges(Schema):
     items = fields.List(fields.Nested(ChallengeOut))

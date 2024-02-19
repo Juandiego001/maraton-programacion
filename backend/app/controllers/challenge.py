@@ -1,7 +1,7 @@
 from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from app.schemas.challenge import ChallengeIn, ChallengeOut, Challenges
+from app.schemas.challenge import ChallengeIn, ChallengeOut, Challenges, ChallengesQuery
 from app.schemas.generic import Message
 from app.services import challenge
 from app.utils import success_message
@@ -37,10 +37,11 @@ def get_challenge_detail(challengeid):
 
 
 @bp.get('/')
+@bp.input(ChallengesQuery, location='query')
 @bp.output(Challenges)
-def get_challenges():
+def get_challenges(query):
     try:
-        return Challenges().dump({'items': challenge.get_challenges()})
+        return Challenges().dump({'items': challenge.get_challenges(query)})
     except Exception as ex:
         abort(500, str(ex))
 

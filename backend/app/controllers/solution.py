@@ -4,7 +4,7 @@ from werkzeug.exceptions import HTTPException
 from apiflask import APIBlueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
 from app.services import solution
-from app.schemas.solution import SolutionIn, SolutionOut, Solutions
+from app.schemas.solution import SolutionIn, SolutionOut, Solutions, SolutionsQuery
 from app.schemas.generic import Message
 from dropbox.exceptions import HttpError
 from app.utils import success_message
@@ -30,10 +30,11 @@ def create_solution(files_data):
 
 
 @bp.get('/')
+@bp.input(SolutionsQuery, location='query')
 @bp.output(Solutions)
-def get_solutions():
+def get_solutions(query):
     try:
-        return Solutions().dump({'items': solution.get_solutions()})        
+        return Solutions().dump({'items': solution.get_solutions(query)})
     except Exception as ex:
         abort(500, str(ex))
 

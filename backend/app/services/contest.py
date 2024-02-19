@@ -41,13 +41,25 @@ def get_contest_by_id(contestid: str):
 
 
 def get_contests(query: dict):
-    full_query = {}
-    if 'initial_date' in query and 'end_date' in query:
-        full_query['made_at'] = {
-            '$gt': query['initial_date'],
-            '$lt': query['end_date']
+    filter = {}
+    if 'platform' in query:
+        filter['platform'] = {
+            '$regex':  f'{query["platform"]}',
+            '$options': 'i'
         }
-    return list(mongo.db.contests.find(full_query))
+    if 'name' in query:
+        filter['name'] = {
+            '$regex': f'{query["name"]}',
+            '$options': 'i'
+        }
+    if 'initial_date' in query and 'end_date' in query:
+        filter['made_at'] = {
+            '$gte': query['initial_date'],
+            '$lte': query['end_date']
+        }
+    if 'isTraining' in query:
+        filter['isTraining'] = query['isTraining']    
+    return list(mongo.db.contests.find(filter))
 
 
 def update_contest(contestid, params):

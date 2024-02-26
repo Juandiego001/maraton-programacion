@@ -14,6 +14,11 @@ export default [
         to: '/administration/structures'
       },
       {
+        icon: 'mdi-message-badge',
+        title: 'Respuestas',
+        to: '/administration/responses'
+      },
+      {
         icon: 'mdi-codepen',
         title: 'Lenguajes',
         to: '/administration/languages'

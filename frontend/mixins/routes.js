@@ -24,6 +24,9 @@ export const topicUrl = '/api/topic/'
 // Structures
 export const structureUrl = '/api/structure/'
 
+// Responses
+export const responseUrl = '/api/response/'
+
 // Languages
 export const languageUrl = '/api/language/'
 

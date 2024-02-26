@@ -18,14 +18,25 @@ def put_file(file: FileStorage, materialid: str):
     return real_name
 
 
+# Valida que la competencia no esté registrada
+def validate_exists(platform: str, name: str, made_at: datetime.date):
+    return mongo.db.contests.find_one({'platform': platform, 
+                                       'name': name,
+                                       'made_at': made_at})
+
+
 def create_contest(params: dict):
     contestid = ObjectId()
     params['_id'] = contestid
     params['real_name'] = put_file(params.pop('file'), contestid)\
       if 'file' in params else None
-    params['file_url'] = f'{contestid}?v={generate_id()}'
+    params['file_url'] = f'{contestid}?v={generate_id()}'\
+        if 'file' in params else None
     params['created_at'] = params['updated_at'] = datetime.now()
     params['status'] = True
+
+    if validate_exists(params['platform'], params['name'], params['made_at']):
+        raise HTTPException('La competencia ya ha sido registrada')
     created = mongo.db.contests.insert_one(params)
     if not created:
         raise HTTPException('La competencia no fue creada')
@@ -52,14 +63,16 @@ def get_contests(query: dict):
             '$regex': f'{query["name"]}',
             '$options': 'i'
         }
-    if 'initial_date' in query and 'end_date' in query:
-        filter['made_at'] = {
-            '$gte': query['initial_date'],
-            '$lte': query['end_date']
-        }
+    if 'initial_date' in query or 'end_date' in query:
+        filter['made_at'] = {}
+    if 'initial_date' in query:
+        filter['made_at']['$gte'] = query['initial_date']
+    if 'end_date' in query:
+        filter['made_at']['$lte'] = query['end_date']
     if 'isTraining' in query:
-        filter['isTraining'] = query['isTraining']    
-    return list(mongo.db.contests.find(filter))
+        filter['isTraining'] = query['isTraining']
+
+    return list(mongo.db.contests.find(filter).sort('made_at', -1))
 
 
 def update_contest(contestid, params):

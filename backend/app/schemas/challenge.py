@@ -14,6 +14,10 @@ class ChallengeIn(DefaultAuto):
     status = fields.Boolean(required=False)
 
 
+class ChallengesIn(Schema):
+    challenges = fields.List(fields.Nested(ChallengeIn))
+    contestid = ObjectId()
+
 class ChallengeOut(DefaultAuto):
     title = fields.String()
     name = fields.String()    

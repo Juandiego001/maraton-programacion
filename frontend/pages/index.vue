@@ -23,6 +23,17 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-lan
+    v-col(v-if="canRead('Respuestas')" cols="2" sm="4" md="2")
+      v-card(nuxt :to="'/administration/responses'" hover)
+        v-card-title.primary.white--text
+          div
+            span Respuestas
+            p.caption Administración
+        v-card-text
+        v-card-actions
+          v-spacer
+          v-btn(icon)
+            v-icon.primary--text mdi-message-badge
     v-col(v-if="canRead('Lenguajes')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/administration/languages'" hover)
         v-card-title.primary.white--text
@@ -45,6 +56,7 @@ v-container
           v-spacer
           v-btn(icon)
             v-icon.primary--text mdi-clock-fast
+  v-row
     v-col(v-if="canRead('Roles')" cols="2" sm="3" md="2")
       v-card(nuxt :to="'/user/roles'" hover)
         v-card-title.primary.white--text

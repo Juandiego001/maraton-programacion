@@ -11,8 +11,8 @@ def verify_permission_exists(permissionid: str):
 
 
 def create_permission(params: dict):
-    if not role.verify_role_exists(params['roleid']):
-        raise HTTPException('El perfil no existe')
+    if not role.verify_role_exists([{'_id': params['roleid']}]):
+        raise HTTPException('El rol no existe')
     
     if not module.verify_module_exists({'_id': params['moduleid']}):
         raise HTTPException('El módulo no existe')

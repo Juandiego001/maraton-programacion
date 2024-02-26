@@ -15,14 +15,15 @@ v-container(fluid)
       target="_blank" icon)
         v-icon mdi-link
 
-  v-dialog(v-model="dialogEdit" max-width="600px"
+  //- Diálogo de edición
+  v-dialog(v-model="dialogEditChallenge" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
-    v-form(ref="form" @submit.prevent="saveTopic")
+    v-form(ref="formEdit" @submit.prevent="saveChallenges")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title(class="primary white--text")
           | {{ formTitle }}
           v-spacer
-          v-btn(class="white--text" icon @click="dialogEdit=false")
+          v-btn(class="white--text" icon @click="dialogEditChallenge=false")
             v-icon mdi-close
 
         v-card-text(class="my-3")
@@ -65,6 +66,59 @@ v-container(fluid)
         v-card-actions
           v-spacer
           v-btn(color="primary" depressed type="submit") Guardar
+
+  //- Diálogo de creación múltiple
+  v-dialog(v-model="dialogEdit" max-width="600px"
+  :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
+    v-form(ref="form" @submit.prevent="saveChallenges")
+      v-card(flat :tile="$vuetify.breakpoint.smAndDown")
+        v-card-title(class="primary white--text")
+          | {{ formTitle }}
+          v-spacer
+          v-btn(class="white--text" icon @click="dialogEdit=false")
+            v-icon mdi-close
+
+        v-card-text.mt-3
+          v-select(v-model="form.contestid" dense :items="contests"
+          label="Competencia" filled :rules="generalRules"
+          item-text="full_contest" item-value="_id" hide-details="auto")
+          v-tabs.mt-3.mb-5(v-model="tab" center-active light)
+            v-tab(v-for="(challenge, index) in challenges"
+            :key="`tab${index}`")
+              | {{ challenge.title ? challenge.title : 'Reto #' + (index + 1) }}
+          v-tabs-items(v-model="tab")
+            v-tab-item(v-for="(challenge, index) in challenges"
+            :key="`challenge${index}`")
+              v-card
+                v-card-text
+                  v-row(dense)
+                    v-col(class="primary--text" cols="12" md="12")
+                      | Información del reto
+                    v-col(cols="12" md="6")
+                      text-field(v-model="challenge.title"
+                      label="Título" :rules="generalRules")
+                    v-col(cols="12" md="6")
+                      text-field(v-model="challenge.name"
+                      label="Nombre archivo fuente")
+                    v-col(cols="12" md="12")
+                      v-select(v-model="challenge.languagesid" dense
+                      :items="languages" label="Lenguajes aceptados" filled
+                      multiple chips :rules="generalRules" item-text="name"
+                      item-value="_id" hide-details="auto")
+                    v-col(cols="12" md="12")
+                      v-select(v-model="challenge.difficultyid"
+                      label="Dificultad" dense :items="difficulties" filled
+                      item-text="name" item-value="_id" hide-details="auto")
+                    v-col(cols="12" md="12")
+                      v-select(v-model="challenge.topicsid" dense
+                      :items="topics" label="Temáticas" filled multiple chips
+                      :rules="[]" item-text="title" item-value="_id"
+                      hide-details="auto")
+
+        v-card-actions
+          v-spacer
+          v-btn(@click="addChallenge") Agregar otro reto
+          v-btn(color="primary" type="submit") Guardar
 
   //- Diálogo de búsqueda
   v-dialog(v-model="dialogSearch" max-width="600px"
@@ -110,11 +164,13 @@ export default {
     return {
       options: {},
       total: -1,
+      dialogEditChallenge: false,
       items: [],
       languages: [],
       contests: [],
       topics: [],
       difficulties: [],
+      tab: 0,
       form: {
         _id: '',
         title: '',
@@ -125,7 +181,13 @@ export default {
         contestid: '',
         difficultyid: '',
         topicsid: ''
-      }
+      },
+      challenges: [
+        {
+          title: 'Reto #1',
+          source: ''
+        }
+      ]
     }
   },
 
@@ -137,7 +199,12 @@ export default {
     headers () {
       return [
         { text: 'Reto', align: 'center', width: 6, value: 'title' },
-        { text: 'Competencia', align: 'center', width: 12, value: 'full_contest' },
+        {
+          text: 'Competencia',
+          align: 'center',
+          width: 12,
+          value: 'full_contest'
+        },
         { text: 'Estado', align: 'center', width: 6, value: 'status' },
         { text: 'Opciones', align: 'center', width: 6, value: 'options' }
       ]
@@ -152,14 +219,31 @@ export default {
 
   watch: {
     options: { handler () { this.getData() } },
-    dialogEdit (value) {
+    dialogEditChallenge (value) {
       if (!value) {
-        this.$refs.form.reset()
+        this.$refs.formEdit.reset()
         this.form = {
           _id: '',
           title: '',
           source: ''
         }
+      } else {
+        this.getContests()
+        this.getTopics()
+        this.getDifficulties()
+        this.getLanguages()
+        this.$refs.formEdit && this.$refs.formEdit.resetValidation()
+      }
+    },
+    dialogEdit (value) {
+      if (!value) {
+        this.$refs.form.reset()
+        this.challenges = [
+          {
+            title: 'Reto #1',
+            source: ''
+          }
+        ]
       } else {
         this.getContests()
         this.getTopics()
@@ -190,7 +274,7 @@ export default {
         this.showSnackbar(err)
       }
     },
-    async saveTopic () {
+    async saveChallenges () {
       try {
         if (!this.$refs.form.validate()) { return }
         let message
@@ -198,7 +282,8 @@ export default {
           ({ message } = await this.$axios.$patch(
               `${challengeUrl}${this.form._id}`, this.form))
         } else {
-          ({ message } = await this.$axios.$post(challengeUrl, this.form))
+          ({ message } = await this.$axios.$post(challengeUrl,
+            { challenges: this.challenges, contestid: this.form.contestid }))
         }
 
         this.getData()
@@ -211,7 +296,7 @@ export default {
     async getChallenge (item) {
       try {
         this.form = (await this.$axios.$get(`${challengeUrl}${item._id}`))
-        this.dialogEdit = true
+        this.dialogEditChallenge = true
       } catch (err) {
         this.showSnackbar(err)
       }
@@ -243,6 +328,15 @@ export default {
       } catch (err) {
         this.showSnackbar(err)
       }
+    },
+    addChallenge () {
+      const challengeCopy = this.$clone(this.challenges)
+      challengeCopy.push(
+        {
+          title: `Reto #${this.challenges.length + 1}`,
+          source: ''
+        })
+      this.challenges = challengeCopy
     },
     async doSearch () {
       try {

@@ -11,7 +11,7 @@ class PermissionIn(DefaultAuto):
 
 
 class PermissionInCreate(PermissionIn):
-    profileid = ObjectId()
+    roleid = ObjectId()
     moduleid = ObjectId()
 
 

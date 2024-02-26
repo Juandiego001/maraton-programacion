@@ -24,7 +24,7 @@ def create_default_permissions(roleid: str, updated_by: str):
 
 
 def create_rol(params: dict):
-    if verify_exists([{'name': params['name']}]):
+    if verify_role_exists([{'name': params['name']}]):
         raise HTTPException('El rol ya ha sido creado')
     params['created_at'] = params['updated_at'] = datetime.now()
     params['status'] = True
@@ -38,7 +38,7 @@ def create_rol(params: dict):
     return permissions_created
 
 
-def verify_exists(params: list):
+def verify_role_exists(params: list):
     return mongo.db.roles.find_one({'$or': params})
 
 
@@ -47,19 +47,19 @@ def get_roles():
 
 
 def get_role_by_id(roleid: str):
-    role = verify_exists([{'_id': ObjectId(roleid)}])
+    role = verify_role_exists([{'_id': ObjectId(roleid)}])
     if not role:
         raise HTTPException('Rol no encontrado')
     return role
 
 
 def update_role(roleid:str, params: dict):
-    role = verify_exists([{'_id': ObjectId(roleid)}])
+    role = verify_role_exists([{'_id': ObjectId(roleid)}])
     if not role:
         raise HTTPException('Rol no encontrado')
     
     if 'name' in params and role['name'] != params['name'] and\
-        verify_exists([{'name': params['name']}]):
+        verify_role_exists([{'name': params['name']}]):
         raise HTTPException('El rol ya existe')
 
     params['updated_at'] = datetime.now()

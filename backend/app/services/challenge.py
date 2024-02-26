@@ -3,16 +3,27 @@ from werkzeug.exceptions import HTTPException
 from app import mongo
 from bson import ObjectId
 
+
 def create_topics_challenge(params: list):
     return mongo.db.topics_challenge.insert_many(params)
+
 
 def create_languages_challenge(params: list):
     return mongo.db.sources.insert_many(params)
 
+
+# Para crear múltiples retos
+def create_challenges(params: dict):
+    for challenge in params['challenges']:
+        challenge['contestid'] = params['contestid']
+        challenge['updated_by'] = params['updated_by']
+        create_challenge(challenge)
+
+
 def create_challenge(params: dict):
     challenge = verify_if_challenge_exists(params['title'], params['contestid'])
     if challenge:
-        raise HTTPException('La competencia ya existe')
+        raise HTTPException('El reto ya existe')
     params['status'] = True
     params['created_at'] = datetime.now()
     params['updated_at'] = datetime.now()

@@ -27,6 +27,12 @@ modules = [
         'updated_by': admin['username']
     },
     {
+        'name': 'Respuestas',
+        'status': True,
+        'updated_at': datetime.now(),
+        'updated_by': admin['username']
+    }
+    {
         'name': 'Lenguajes',
         'status': True,
         'updated_at': datetime.now(),

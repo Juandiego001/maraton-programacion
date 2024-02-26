@@ -4,6 +4,8 @@ v-container(fluid)
   :options.sync="options")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
+    template(#item.isTraining="{ item }")
+      | {{  item.isTraining ? 'Sí' : ''  }}
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
       @click="getContest(item)")
@@ -73,7 +75,7 @@ v-container(fluid)
   //- Diálogo de búsqueda
   v-dialog(v-model="dialogSearch" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
-    v-form(@submit.prevent="doSearch")
+    v-form(@submit.prevent="doSearch" ref="formSearch")
       v-card(flat :tile="$vuetify.breakpoint.smAndDown")
         v-card-title.primary.white--text Búsqueda de competencias
           v-spacer
@@ -97,7 +99,8 @@ v-container(fluid)
                 template(v-slot:activator="{ on, attrs }")
                   v-text-field(v-model="search.initial_date" readonly
                   v-bind="attrs" label="Fecha de inicial" v-on="on"
-                  hide-details="auto" prepend-icon="mdi-calendar" clearable)
+                  hide-details="auto" prepend-icon="mdi-calendar" clearable
+                  :rules="initialDateRule")
                 v-date-picker(v-model="search.initial_date"
                 :active-picker.sync="activeSearchInitialPicker"
                 @change="saveSearchInitialDate")
@@ -108,7 +111,7 @@ v-container(fluid)
                 template(v-slot:activator="{ on, attrs }")
                   v-text-field(v-model="search.end_date" readonly v-bind="attrs"
                   label="Fecha de final" v-on="on" hide-details="auto"
-                  prepend-icon="mdi-calendar" clearable)
+                  prepend-icon="mdi-calendar" clearable :rules="endDateRule")
                 v-date-picker(v-model="search.end_date"
                 :active-picker.sync="activeSearchEndPicker"
                 @change="saveSearchEndDate")
@@ -164,7 +167,9 @@ export default {
     headers () {
       return [
         { text: 'Plataforma', align: 'center', value: 'platform' },
+        { text: 'Nombre', align: 'center', value: 'name' },
         { text: 'Fecha de realización', align: 'center', value: 'made_at' },
+        { text: 'Capacitación', align: 'center', value: 'isTraining' },
         { text: 'Estado', align: 'center', value: 'status' },
         { text: 'Opciones', align: 'center', value: 'options' }
       ]
@@ -177,6 +182,20 @@ export default {
         { text: 'Todos', value: '' },
         { text: 'Capacitación', value: true },
         { text: 'No capacitación', value: false }
+      ]
+    },
+    initialDateRule () {
+      return [
+        v => !v || !this.search.end_date ||
+            (v < this.search.end_date) ||
+             'La fecha inicial debe ser menor a la fecha final'
+      ]
+    },
+    endDateRule () {
+      return [
+        v => !this.search.initial_date || !v ||
+            (this.search.initial_date < v) ||
+            'La fecha final debe ser mayor a la fecha inicial'
       ]
     }
   },
@@ -261,12 +280,25 @@ export default {
     },
     async doSearch () {
       try {
+        if (!this.$refs.formSearch.validate()) { return }
         let query = ''
-        for (const key of Object.keys(this.search)) {
-          if (this.search[key] !== '') {
-            query += `${key}=${this.search[key]}&`
-          }
+
+        if (this.search.platform) {
+          query += `platform=${this.search.platform}&`
         }
+        if (this.search.initial_date) {
+          query += `initial_date=${this.search.initial_date}&`
+        }
+        if (this.search.end_date) {
+          query += `end_date=${this.search.end_date}&`
+        }
+        if (this.search.name) {
+          query += `name=${this.search.name}&`
+        }
+        if (this.search.isTraining) {
+          query += `isTraining=${this.search.isTraining}&`
+        }
+
         this.items = (await this.$axios.$get(
           `${contestUrl}?${query}`)).items
         this.dialogSearch = false

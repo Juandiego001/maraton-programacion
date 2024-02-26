@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
+  :options.sync="options" :disable-sort="true")
     template(#item.options="{ item }")
       v-btn(class="mr-2" color="success" depressed icon
       @click="getSolution(item)")
@@ -15,6 +15,14 @@ v-container(fluid)
     template(#item.status="{ item }")
       | {{ item.status ? 'Activo' : 'Inactivo' }}
 
+  v-row(dense)
+    v-col(cols="12" md="12")
+      .primary--text Respuestas del juez
+    v-col(v-for="(response, index) in responses" :key="`response${index}`")
+      v-chip.white--text(:color="response.color")
+        | {{ `${response.code}: ${response.description}` }}
+
+  //- Diálogo de creación/edición
   v-dialog(v-model="dialogEdit" max-width="600px"
   :fullscreen="$vuetify.breakpoint.smAndDown" scrollable)
     v-form(ref="form" @submit.prevent="saveSolution")
@@ -50,13 +58,21 @@ v-container(fluid)
               :label="form.real_name ? 'Subir otro archivo' : 'Subir archivo'"
               hide-details="auto" :rules="fileLinkRules")
             v-col(cols="12" md="12")
+              v-select(v-model="form.topicsid" label="Temática"
+              filled :items="topics" item-text="title" item-value="_id"
+              hide-details="auto" multiple dense small-chips
+              :disabled="!topics.length")
+            v-col(cols="12" md="12")
+              v-select(v-model="form.structuresid" label="Estructura de datos"
+              filled :items="structures" item-text="title"
+              item-value="_id" hide-details="auto" multiple dense small-chips)
+            v-col(cols="12" md="12")
               text-field(v-model="form.link" label="Enlace"
               :rules="fileLinkRules")
-            v-col(cols="12" md="6")
-              text-field(v-model="form.judgment_status"
-              label="Respuesta del juez")
-            v-col(cols="12" md="6")
-              text-field(v-model="form.error" label="Error")
+            v-col(cols="12" md="12")
+              v-select(v-model="form.responseid" label="Respuesta del juez"
+              filled :items="responses" item-text="description" item-value="_id"
+              hide-details="auto" dense)
             v-col(cols="12" md="12")
               v-textarea(v-model="form.description" label="Descripción"
               filled rows="3" auto-grow hide-details="auto")
@@ -107,7 +123,10 @@ v-container(fluid)
 <script>
 import generalRules from '../../mixins/form-rules/general-rules'
 import fileLinkRules from '../../mixins/form-rules/file-link'
-import { solutionUrl, contestUrl, challengeUrl, sourceUrl, languageUrl }
+import {
+  solutionUrl, contestUrl, challengeUrl, sourceUrl, topicUrl,
+  languageUrl, structureUrl, responseUrl
+}
   from '../../mixins/routes'
 
 export default {
@@ -121,17 +140,21 @@ export default {
       sources: [],
       contests: [],
       challenges: [],
+      topics: [],
+      structures: [],
       languages: [],
+      responses: [],
       file: null,
       form: {
         _id: '',
         contestid: '',
         challengeid: '',
         sourceid: '',
+        topicid: [],
+        structureid: [],
         link: '',
-        description: '',
-        judgment_status: '',
-        error: ''
+        responseid: '',
+        description: ''
       },
       search: {
         contestid: '',
@@ -151,6 +174,7 @@ export default {
         { text: 'Competencia', value: 'full_contest' },
         { text: 'Reto', value: 'full_challenge' },
         { text: 'Archivo fuente asociado', value: 'full_source' },
+        { text: 'Respuesta', value: 'full_response' },
         { text: 'Hecho por', value: 'username' },
         { text: 'Opciones', value: 'options' }
       ]
@@ -173,13 +197,16 @@ export default {
           _id: '',
           challengeid: '',
           sourceid: '',
+          topicsid: [],
+          structuresid: [],
           link: '',
           description: '',
-          judgment_status: '',
+          responseid: '',
           error: ''
         }
       } else {
         this.getContests()
+        this.getStructures()
         this.$refs.form && this.$refs.form.resetValidation()
       }
     },
@@ -197,7 +224,10 @@ export default {
       }
     },
     'form.challengeid' (value) {
-      if (value) { this.getSources(value) }
+      if (value) {
+        this.getSources(value)
+        this.getTopics(value)
+      }
     },
     'search.contestid' (value) {
       if (value) {
@@ -216,15 +246,33 @@ export default {
     async getData () {
       try {
         this.items = (await this.$axios.$get(solutionUrl)).items
+        this.getResponses()
       } catch (err) {
         this.showSnackbar(err)
       }
     },
     getFormData () {
       const formData = new FormData()
+
       for (const key of Object.keys(this.form)) {
-        if (this.form[key] != null) { formData.append(key, this.form[key]) }
+        if (this.form[key] != null &&
+          !(['topicsid', 'structuresid'].includes(key))) {
+          formData.append(key, this.form[key])
+        }
       }
+
+      if (this.form.topicsid) {
+        for (const topicid of this.form.topicsid) {
+          formData.append('topicsid', topicid)
+        }
+      }
+
+      if (this.form.structuresid) {
+        for (const structureid of this.form.structuresid) {
+          formData.append('structuresid', structureid)
+        }
+      }
+
       if (this.file) {
         formData.append('file', this.file)
       }
@@ -279,6 +327,28 @@ export default {
       try {
         this.sources = (await this.$axios.$get(
           `${sourceUrl}languages/${challengeid}`)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getTopics (challengeid) {
+      try {
+        this.topics = (await this.$axios.$get(
+          `${topicUrl}challenge/${challengeid}`)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getStructures () {
+      try {
+        this.structures = (await this.$axios.$get(structureUrl)).items
+      } catch (err) {
+        this.showSnackbar(err)
+      }
+    },
+    async getResponses () {
+      try {
+        this.responses = (await this.$axios.$get(responseUrl)).items
       } catch (err) {
         this.showSnackbar(err)
       }

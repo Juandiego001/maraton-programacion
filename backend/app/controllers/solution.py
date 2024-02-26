@@ -43,7 +43,9 @@ def get_solutions(query):
 @bp.output(SolutionOut)
 def get_solution(solutionid):
     try:
-        return solution.get_solution_by_id(solutionid)
+        sol = solution.get_solution_by_id(solutionid)
+        print('sol: ', sol)
+        return sol
     except HTTPException as ex:
         abort(404, ex.description)
     except Exception as ex:

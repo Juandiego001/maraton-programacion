@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options" :search="search")
+  :options.sync="options" :search="search" :disable-sort="true")
     template(#item.file_link="{ item }")
       .text-truncate {{ item.real_name ? item.real_name : item.link }}
     template(#item.options="{ item }")

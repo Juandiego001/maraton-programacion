@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
+  :options.sync="options" :disable-sort="true")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
     template(#item.isTraining="{ item }")

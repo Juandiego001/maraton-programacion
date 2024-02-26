@@ -6,7 +6,9 @@ from app.schemas.generic import Message
 from app.services import topic
 from app.utils import success_message
 
+
 bp = APIBlueprint('topic', __name__)
+
 
 @bp.post('/')
 @bp.input(TopicIn)
@@ -22,6 +24,7 @@ def create_topic(data):
     except Exception as ex:
         abort(500, str(ex))
 
+
 @bp.get('/<string:topicid>')
 @bp.output(TopicOut)
 def get_topic_detail(topicid):
@@ -32,6 +35,7 @@ def get_topic_detail(topicid):
     except Exception as ex:
         abort(500, str(ex))
 
+
 @bp.get('/')
 @bp.output(Topics)
 def get_topics():
@@ -39,6 +43,7 @@ def get_topics():
         return Topics().dump({'items': topic.get_topics()})
     except Exception as ex:
         abort(500, str(ex))
+
 
 @bp.patch('/<string:topicid>')
 @bp.input(TopicIn)
@@ -54,3 +59,15 @@ def update_topic(topicid, data):
     except Exception as ex:
         abort(500, str(ex))
 
+
+@bp.get('/challenge/<string:challengeid>')
+@bp.output(Topics)
+def get_topics_by_challenge(challengeid):
+    '''
+    Get topics by challengeid
+    '''
+    try:
+        return Topics().dump(
+            {'items': topic.get_topics_by_challenge(challengeid)})
+    except Exception as ex:
+        abort(500, str(ex))

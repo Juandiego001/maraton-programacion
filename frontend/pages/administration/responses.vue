@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options" :search="search")
+  :options.sync="options" :search="search" :disable-sort="true")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
     template(#item.options="{ item }")
@@ -33,7 +33,7 @@ v-container(fluid)
                 template(v-slot:activator="{ on, attrs }")
                   v-text-field(v-model="form.color" readonly v-bind="attrs"
                   label="Color" v-on="on" prepend-inner-icon="mdi-palette"
-                  :color="form.color")
+                  :color="form.color" filled hide-details="auto")
                 v-color-picker(v-model="form.color" hide-canvas hide-inputs
                 hide-sliders show-swatches swatches-max-height="100"
                 :swatches="swatches")
@@ -43,7 +43,8 @@ v-container(fluid)
 
           v-row(v-if="form._id" dense)
             v-col(cols="12")
-              v-checkbox(v-model="form.status" label="Activo")
+              v-checkbox(v-model="form.status" label="Activo"
+              hide-details="auto")
             v-col(class="text-caption" cols="12" md="6")
               | ID: {{ form._id }}
             v-col(class="text-caption text-md-right" cols="12" md="6")
@@ -123,9 +124,6 @@ export default {
       } else {
         this.$refs.form && this.$refs.form.resetValidation()
       }
-    },
-    menu (val) {
-      console.log('VAL: ', val)
     }
   },
 

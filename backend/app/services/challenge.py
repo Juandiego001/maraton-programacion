@@ -178,6 +178,7 @@ def get_challenge_by_id(challengeid: str):
         raise HTTPException('El reto no fue encontrado')
     return challenge
 
+
 def get_challenges(query: dict):
     filter = {}
     if 'title' in query:

@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-    :options.sync="options" :search="search")
+    :options.sync="options" :search="search" :disable-sort="true")
     template(#item.options="{ item }")
       v-btn(icon @click="getRole(item)")
         v-icon.success--text mdi-pencil-outline

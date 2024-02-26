@@ -1,7 +1,7 @@
 <template lang="pug">
 v-container(fluid)
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
-  :options.sync="options")
+  :options.sync="options" :disable-sort="true")
     template(#item.status="{ item }")
       | {{  item.status ? 'Activo' : 'Inactivo'  }}
     template(#item.options="{ item }")
@@ -103,16 +103,16 @@ v-container(fluid)
                     v-col(cols="12" md="12")
                       v-select(v-model="challenge.languagesid" dense
                       :items="languages" label="Lenguajes aceptados" filled
-                      multiple chips :rules="generalRules" item-text="name"
-                      item-value="_id" hide-details="auto")
+                      multiple small-chips :rules="generalRules"
+                      item-text="name" item-value="_id" hide-details="auto")
                     v-col(cols="12" md="12")
                       v-select(v-model="challenge.difficultyid"
                       label="Dificultad" dense :items="difficulties" filled
                       item-text="name" item-value="_id" hide-details="auto")
                     v-col(cols="12" md="12")
                       v-select(v-model="challenge.topicsid" dense
-                      :items="topics" label="Temáticas" filled multiple chips
-                      :rules="[]" item-text="title" item-value="_id"
+                      :items="topics" label="Temáticas" filled multiple
+                      small-chips :rules="[]" item-text="title" item-value="_id"
                       hide-details="auto")
 
         v-card-actions

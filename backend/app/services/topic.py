@@ -28,6 +28,35 @@ def get_topics():
     return list(mongo.db.topics.find({}))
 
 
+def get_topics_by_challenge(challengeid: str):
+    return list(mongo.db.topics.aggregate([
+        {
+            '$lookup': {
+                'from': 'topics_challenge',
+                'localField': '_id', 
+                'foreignField': 'topicid',
+                'as': 'topics_challenge'
+            }
+        }, {
+            '$unwind': {
+                'path': '$topics_challenge'
+            }
+        }, {
+            '$match': {
+                '$expr': {
+                    '$eq': [
+                        '$topics_challenge.challengeid', ObjectId(challengeid)
+                    ]
+                }
+            }
+        }, {
+            '$project': {
+                '_id': 1,
+                'title': 1
+            }
+        }
+    ]))
+
 def verify_if_topic_exists(title: str):
     return mongo.db.topics.find_one({'title': title})
 

@@ -276,7 +276,9 @@ export default {
     },
     async saveChallenges () {
       try {
-        if (!this.$refs.form.validate()) { return }
+        if ((this.$refs.form && !this.$refs.form.validate()) ||
+        (this.$refs.formEdit && !this.$refs.formEdit.validate())) { return }
+
         let message
         if (this.form._id) {
           ({ message } = await this.$axios.$patch(
@@ -288,6 +290,7 @@ export default {
 
         this.getData()
         this.dialogEdit = false
+        this.dialogEditChallenge = false
         this.showSnackbar(message)
       } catch (err) {
         this.showSnackbar(err)

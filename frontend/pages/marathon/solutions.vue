@@ -1,5 +1,14 @@
 <template lang="pug">
 v-container(fluid)
+  v-row(dense)
+    v-col(cols="12" md="12")
+      .primary--text Respuestas del juez
+    v-col(cols="12")
+      v-row(dense)
+        v-chip.white--text.me-2(v-for="(response, index) in responses"
+        :key="`response${index}`" :color="response.color")
+          | {{ `${response.code}: ${response.description}` }}
+
   v-data-table(:headers="headers" :items="items" :server-items-length="total"
   :options.sync="options" :disable-sort="true")
     template(#item.options="{ item }")
@@ -14,13 +23,6 @@ v-container(fluid)
         v-icon mdi-link
     template(#item.status="{ item }")
       | {{ item.status ? 'Activo' : 'Inactivo' }}
-
-  v-row(dense)
-    v-col(cols="12" md="12")
-      .primary--text Respuestas del juez
-    v-col(v-for="(response, index) in responses" :key="`response${index}`")
-      v-chip.white--text(:color="response.color")
-        | {{ `${response.code}: ${response.description}` }}
 
   //- Diálogo de creación/edición
   v-dialog(v-model="dialogEdit" max-width="600px"
@@ -72,7 +74,7 @@ v-container(fluid)
             v-col(cols="12" md="12")
               v-select(v-model="form.responseid" label="Respuesta del juez"
               filled :items="responses" item-text="description" item-value="_id"
-              hide-details="auto" dense)
+              hide-details="auto" dense :rules="generalRules")
             v-col(cols="12" md="12")
               v-textarea(v-model="form.description" label="Descripción"
               filled rows="3" auto-grow hide-details="auto")
@@ -221,18 +223,25 @@ export default {
       if (value) {
         this.getChallenges(value)
         this.sources = []
+      } else {
+        this.challenges = []
       }
     },
     'form.challengeid' (value) {
       if (value) {
         this.getSources(value)
         this.getTopics(value)
+      } else {
+        this.sources = []
+        this.topics = []
       }
     },
     'search.contestid' (value) {
       if (value) {
         this.getChallenges(value)
         this.sources = []
+      } else {
+        this.challenges = []
       }
     }
   },
